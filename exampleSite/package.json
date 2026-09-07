@@ -1,0 +1,12 @@
+{
+  "name": "hugo-theme-devrel-example",
+  "private": true,
+  "scripts": {
+    "build": "hugo --minify && npx pagefind --site public",
+    "index": "npx pagefind --site public",
+    "dev": "hugo server"
+  },
+  "devDependencies": {
+    "pagefind": "^1.5.0"
+  }
+}

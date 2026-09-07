@@ -1,0 +1,26 @@
+{{ define "title" }}
+{{- .Title -}}
+{{ end }}
+
+{{ define "main"}}
+
+<div class="mt-8 px-4" style="padding-left: 2rem; padding-right: 2rem;">
+  <div style="max-width: 1400px; margin: 0 auto;">
+    
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold tracking-tight">
+        <ion-icon name="map" class="text-primary align-middle"></ion-icon>
+        {{ .Title }}
+      </h1>
+      {{ if .Content }}
+      <p class="text-base-content/70 mt-4 max-w-2xl mx-auto">{{ .Content }}</p>
+      {{ end }}
+    </div>
+
+    {{ partial "talks-map.html" . }}
+
+  </div>
+</div>
+
+{{ end }}
+

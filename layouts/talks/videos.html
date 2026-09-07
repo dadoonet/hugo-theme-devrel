@@ -1,0 +1,259 @@
+{{ define "title" }}
+{{- .Title -}}
+{{ end }}
+
+{{ define "main"}}
+
+<style>
+  /* Video thumbnails grid */
+  .video-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(1, 1fr);
+  }
+  @media (min-width: 640px) {
+    .video-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 768px) {
+    .video-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .video-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .video-card {
+    position: relative;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    background: oklch(var(--b2));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  .video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+  .video-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .video-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+  }
+  .video-title {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .video-meta {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Year navigation */
+  .year-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .decade-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .year-nav a {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: oklch(var(--b2));
+    color: oklch(var(--bc));
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+  .year-nav a:hover {
+    background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%);
+    color: oklch(var(--pc));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  .year-nav a:hover .year-pill {
+    background: #fff;
+    color: #dc2626;
+  }
+  .year-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.4rem;
+    margin-left: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 9999px;
+    background: #dc2626;
+    color: #fff;
+    transition: all 0.2s ease;
+  }
+
+  /* Year badge */
+  .year-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5rem;
+    height: 5rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: #fff;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  .year-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(220, 38, 38, 0.5) 0%, transparent 100%);
+  }
+  .back-to-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: oklch(var(--b2));
+    color: oklch(var(--bc) / 0.6);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .back-to-top:hover {
+    background: #dc2626;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+</style>
+
+{{/* Get all talks from the parent section */}}
+{{ $talksSection := site.GetPage "/talks" }}
+{{ $allTalks := $talksSection.RegularPages }}
+
+{{/* Filter only talks with videos */}}
+{{ $scratch := newScratch }}
+{{ $scratch.Set "withVideo" slice }}
+{{ range $allTalks }}
+  {{ if .Params.youtube }}
+    {{ $scratch.Add "withVideo" (slice .) }}
+  {{ end }}
+{{ end }}
+{{ $talksWithVideo := $scratch.Get "withVideo" }}
+
+<div id="top" class="mt-8 px-4" style="padding-left: 2rem; padding-right: 2rem;">
+  <div style="max-width: 1600px; margin: 0 auto;">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold tracking-tight">
+        <ion-icon name="logo-youtube" class="text-error align-middle"></ion-icon>
+        {{ default (i18n "allVideos") .Title }}
+      </h1>
+      <p class="text-base-content/70 mt-4 max-w-2xl mx-auto">{{ len $talksWithVideo }} recorded presentations</p>
+
+      {{/* Year navigation for videos */}}
+      {{ $groupLayout := "2006" }}
+      {{ $groups := $talksWithVideo | group "Date.Year" }}
+      {{/* Sort groups by year descending */}}
+      {{ $sortedGroups := slice }}
+      {{ range $talksWithVideo.GroupByDate $groupLayout }}
+        {{ $sortedGroups = $sortedGroups | append . }}
+      {{ end }}
+      
+      {{/* Get unique decades using scratch */}}
+      {{ $scratch.Set "decades" slice }}
+      {{ range $sortedGroups }}
+        {{ $decade := div (int .Key) 10 | mul 10 }}
+        {{ $existing := $scratch.Get "decades" }}
+        {{ if not (in $existing $decade) }}
+          {{ $scratch.Add "decades" (slice $decade) }}
+        {{ end }}
+      {{ end }}
+      {{ $decades := sort ($scratch.Get "decades") "value" "desc" }}
+      
+      <nav class="year-nav" aria-label="Navigation par année">
+        {{ range $decades }}
+          {{ $currentDecade := . }}
+          <div class="decade-row">
+            {{ range $sortedGroups }}
+              {{ $yearDecade := div (int .Key) 10 | mul 10 }}
+              {{ if eq $yearDecade $currentDecade }}
+              <a href="#year-{{ .Key }}">{{ .Key }}<span class="year-pill">{{ len .Pages }}</span></a>
+              {{ end }}
+            {{ end }}
+          </div>
+        {{ end }}
+      </nav>
+    </div>
+
+    {{ range $sortedGroups }}
+    <section id="year-{{ .Key }}" class="scroll-mt-24" style="margin-top: 3rem; margin-bottom: 2rem;">
+      <div class="flex items-center gap-4">
+        <div class="year-badge">
+          <span class="text-2xl font-black">{{ .Key }}</span>
+        </div>
+        <a href="#top" class="back-to-top" title="Back to top">
+          <ion-icon name="chevron-up"></ion-icon>
+        </a>
+        <div class="year-line"></div>
+        <span class="badge badge-lg badge-error year-pill">{{ len .Pages }} videos</span>
+      </div>
+
+      <div class="video-grid" style="margin-top: 1rem;">
+        {{ range .Pages.ByDate.Reverse }}
+        <a href="{{ .RelPermalink }}#video" class="video-card">
+          {{/* Get YouTube thumbnail */}}
+          {{ $youtubeId := .Params.youtube }}
+          {{ $cover := .Resources.GetMatch .Params.cover }}
+          {{ if $youtubeId }}
+          <img src="https://img.youtube.com/vi/{{ $youtubeId }}/maxresdefault.jpg" alt="{{ .Title }}" loading="lazy" />
+          {{ else if $cover }}
+          <img src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" loading="lazy" />
+          {{ end }}
+          <div class="video-overlay">
+            <div class="video-title">{{ .Title }}</div>
+            <div class="video-meta">
+              {{ partial "countryFlag.html" .Params.conference }}
+              {{ partial "langLabel.html" . }}
+              <span>{{ .Params.conference.name }}</span>
+              <span>•</span>
+              <span>{{ .Date | time.Format "Jan 2006" }}</span>
+            </div>
+          </div>
+        </a>
+        {{ end }}
+      </div>
+    </section>
+    {{ end }}
+  </div>
+</div>
+
+{{ end }}
+

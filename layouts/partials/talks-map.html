@@ -1,0 +1,658 @@
+{{/* Partial for displaying talks map - can be used from any page 
+     Parameters (optional, passed via dict):
+     - startDate: optional date string (format: "2006-01-02") - filter talks from this date
+     - endDate: optional date string (format: "2006-01-02") - filter talks until this date
+     - mapId: optional string - unique ID for the map container (default: "map-container")
+     Example: {{ partial "talks-map.html" (dict "startDate" "2025-01-01" "endDate" "2025-12-31") }}
+     Example: {{ partial "talks-map.html" (dict "startDate" "2025-01-01" "mapId" "map-2025") }}
+     Example: {{ partial "talks-map.html" . }} - all talks (no date filter)
+*/}}
+
+{{/* Get parameters with defaults - handle both dict and context */}}
+{{ $startDate := "" }}
+{{ $endDate := "" }}
+{{ $mapId := "map-container" }}
+{{/* Only use isset when . is a map/dict, not a page object */}}
+{{ if reflect.IsMap . }}
+  {{ if isset . "startDate" }}
+    {{ $startDate = .startDate }}
+  {{ end }}
+  {{ if isset . "endDate" }}
+    {{ $endDate = .endDate }}
+  {{ end }}
+  {{ if isset . "mapId" }}
+    {{ $mapId = .mapId }}
+  {{ end }}
+{{ end }}
+
+{{/* Parse dates if provided */}}
+{{ $startDateParsed := false }}
+{{ $endDateParsed := false }}
+{{ if and $startDate (ne $startDate "") }}
+  {{ $startDateParsed = time $startDate }}
+  {{ if not $startDateParsed }}
+    {{ errorf "Invalid startDate format: %s. Expected format: 2006-01-02" $startDate }}
+  {{ end }}
+{{ end }}
+{{ if and $endDate (ne $endDate "") }}
+  {{ $endDateParsed = time $endDate }}
+  {{ if not $endDateParsed }}
+    {{ errorf "Invalid endDate format: %s. Expected format: 2006-01-02" $endDate }}
+  {{ end }}
+{{ end }}
+
+<style>
+  .map-container {
+    width: 100%;
+    height: 80vh;
+    min-height: 600px;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    margin: 2rem 0;
+  }
+  
+  .map-info {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: oklch(var(--b2));
+    border-radius: 0.75rem;
+  }
+  
+  .map-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+  
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: oklch(var(--p));
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+    color: oklch(var(--bc) / 0.7);
+  }
+</style>
+
+<!-- Leaflet CSS - Load only once -->
+<script>
+  if (!document.querySelector('link[href*="leaflet"]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+    link.crossOrigin = '';
+    document.head.appendChild(link);
+  }
+</script>
+
+{{/* Collect all talks with coordinates */}}
+{{ $talksSection := site.GetPage "/talks" }}
+{{ $allTalks := $talksSection.RegularPages }}
+{{ $scratch := newScratch }}
+{{ $scratch.Set "talksWithCoords" slice }}
+{{ $scratch.Set "uniqueCities" dict }}
+{{ $scratch.Set "uniqueCountries" dict }}
+{{ $scratch.Set "totalTalks" 0 }}
+{{ $scratch.Set "onlineTalks" 0 }}
+
+{{ range $allTalks }}
+  {{ $lat := .Params.conference.latitude }}
+  {{ $lon := .Params.conference.longitude }}
+  {{ $country := .Params.conference.country }}
+  {{ $countryCode := .Params.conference.country_code }}
+  {{ $talkDate := .Date }}
+  
+  {{/* Filter by date if dates are provided */}}
+  {{ $includeTalk := true }}
+  {{ if $startDateParsed }}
+    {{ if lt $talkDate $startDateParsed }}
+      {{ $includeTalk = false }}
+    {{ end }}
+  {{ end }}
+  {{ if $endDateParsed }}
+    {{ if gt $talkDate $endDateParsed }}
+      {{ $includeTalk = false }}
+    {{ end }}
+  {{ end }}
+  
+  {{/* Count online talks separately */}}
+  {{ if $includeTalk }}
+    {{ if or (eq $country "Online") (eq $countryCode "Online") }}
+      {{ $scratch.Add "onlineTalks" 1 }}
+    {{ end }}
+  {{ end }}
+  
+  {{/* Check if coordinates exist and are not empty, and not Online, and date filter passes */}}
+  {{ if and $includeTalk $lat $lon }}
+    {{ if and (ne $lat "") (ne $lon "") }}
+      {{ if and (ne $country "Online") (ne $countryCode "Online") }}
+        {{/* Add talk - validation will be done in JavaScript */}}
+        {{ $scratch.Add "talksWithCoords" (slice .) }}
+        {{ $scratch.Add "totalTalks" 1 }}
+        
+        {{/* Track unique cities */}}
+        {{ if .Params.conference.city }}
+          {{ $cityKey := printf "%s-%s" .Params.conference.city $country }}
+          {{ $cities := $scratch.Get "uniqueCities" }}
+          {{ if not (index $cities $cityKey) }}
+            {{ $scratch.SetInMap "uniqueCities" $cityKey (dict "city" .Params.conference.city "country" $country) }}
+          {{ end }}
+        {{ end }}
+        
+        {{/* Track unique countries */}}
+        {{ if $country }}
+          {{ $countries := $scratch.Get "uniqueCountries" }}
+          {{ if not (index $countries $country) }}
+            {{ $scratch.SetInMap "uniqueCountries" $country $country }}
+          {{ end }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+{{ $talksWithCoords := $scratch.Get "talksWithCoords" }}
+{{ $uniqueCities := $scratch.Get "uniqueCities" }}
+{{ $uniqueCountries := $scratch.Get "uniqueCountries" }}
+{{ $totalTalks := $scratch.Get "totalTalks" }}
+{{ $onlineTalks := $scratch.Get "onlineTalks" }}
+{{ $grandTotalTalks := add $totalTalks $onlineTalks }}
+
+<div class="map-info">
+  <div class="map-stats">
+    {{/* Get list of country names from the map */}}
+    {{ $countryNames := slice }}
+    {{ range $key, $value := $uniqueCountries }}
+      {{ $countryNames = $countryNames | append $key }}
+    {{ end }}
+    {{ $countryNames = sort $countryNames }}
+    {{ $countriesList := delimit $countryNames ", " }}
+    <div class="stat-item" style="flex: 1;">
+      <span class="stat-value" style="font-size: 1rem; font-weight: 600;">{{ $grandTotalTalks }} Talks - {{ len $uniqueCities }} Cities - {{ len $uniqueCountries }} Countries{{ if $countriesList }} ({{ $countriesList }}){{ end }}{{ if gt $onlineTalks 0 }} - {{ $onlineTalks }} online{{ end }}</span>
+    </div>
+  </div>
+</div>
+
+{{ if gt $totalTalks 0 }}
+<div id="{{ $mapId }}" class="map-container" style="width: 100%; height: 80vh; min-height: 600px; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); margin: 2rem 0;"></div>
+
+{{/* Generate JSON data for this specific map - store by mapId */}}
+<script>
+  // Initialize maps data structure if needed
+  if (typeof window.talksMapsData === 'undefined') {
+    window.talksMapsData = {};
+  }
+  
+  // Store data for this specific map - clean the key to remove quotes
+  (function() {
+    var mapIdKey = {{ $mapId | jsonify }};
+    // Remove quotes if present (jsonify adds them)
+    if (typeof mapIdKey === 'string' && mapIdKey.startsWith('"') && mapIdKey.endsWith('"')) {
+      mapIdKey = mapIdKey.slice(1, -1);
+    }
+    window.talksMapsData[mapIdKey] = [
+    {{ range $talksWithCoords }}
+    {
+      title: {{ .Title | jsonify }},
+      url: {{ .RelPermalink | jsonify }},
+      date: {{ .Date | time.Format "2006-01-02" | jsonify }},
+      conference: {{ .Params.conference.name | jsonify }},
+      city: {{ if .Params.conference.city }}{{ .Params.conference.city | jsonify }}{{ else }}""{{ end }},
+      country: {{ if .Params.conference.country }}{{ .Params.conference.country | jsonify }}{{ else }}""{{ end }},
+      country_code: {{ if .Params.conference.country_code }}{{ .Params.conference.country_code | jsonify }}{{ else }}""{{ end }},
+      latitude: {{ if .Params.conference.latitude }}{{ .Params.conference.latitude }}{{ else }}null{{ end }},
+      longitude: {{ if .Params.conference.longitude }}{{ .Params.conference.longitude }}{{ else }}null{{ end }}
+    },
+    {{ end }}
+    ];
+    console.log('Talks data loaded for map', mapIdKey, ':', window.talksMapsData[mapIdKey].length, 'talks');
+  })();
+</script>
+
+<script>
+  // Generic function to initialize any map by ID - define globally once
+  if (typeof window.initTalksMap === 'undefined') {
+    window.initTalksMap = function(mapId) {
+      // Track initialized maps
+      if (typeof window.initializedMaps === 'undefined') {
+        window.initializedMaps = new Set();
+      }
+      
+      // Prevent double initialization for this specific map
+      if (window.initializedMaps.has(mapId)) {
+        console.log('Map already initialized, skipping:', mapId);
+        return;
+      }
+      
+      // Check if map container exists
+      // Ensure mapId is a clean string without quotes
+      const cleanMapId = String(mapId).replace(/^["']|["']$/g, '');
+      const mapContainer = document.getElementById(cleanMapId);
+      if (!mapContainer) {
+        console.error('Map container not found:', cleanMapId, 'type:', typeof mapId, 'value:', mapId);
+        return;
+      }
+
+      // Check if Leaflet is loaded
+      if (typeof L === 'undefined') {
+        console.error('Leaflet is not loaded, retrying...');
+        setTimeout(() => window.initTalksMap(mapId), 100);
+        return;
+      }
+
+      // Check if talksData is available for this map
+      // Use cleanMapId for data lookup too (keys are stored without quotes)
+      if (typeof window.talksMapsData === 'undefined' || !window.talksMapsData[cleanMapId] || window.talksMapsData[cleanMapId].length === 0) {
+        console.error('No talks data available for map:', cleanMapId, 'Available maps:', Object.keys(window.talksMapsData || {}));
+        return;
+      }
+
+      // Check if map container is already initialized by Leaflet
+      if (mapContainer._leaflet_id) {
+        console.log('Map already initialized by Leaflet, skipping:', cleanMapId);
+        window.initializedMaps.add(cleanMapId);
+        return;
+      }
+
+      const talksData = window.talksMapsData[cleanMapId];
+      console.log('Initializing map', cleanMapId, 'with', talksData.length, 'talks');
+
+    // Mark as initialized before creating the map
+    window.initializedMaps.add(cleanMapId);
+
+    // Initialize the map - use cleanMapId for DOM operations
+    const map = L.map(cleanMapId).setView([48.8566, 2.3522], 2);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Group markers by location to cluster nearby talks
+    const locationGroups = {};
+    
+    talksData.forEach(talk => {
+      const key = `${talk.latitude},${talk.longitude}`;
+      if (!locationGroups[key]) {
+        locationGroups[key] = [];
+      }
+      locationGroups[key].push(talk);
+    });
+
+    console.log('Created', Object.keys(locationGroups).length, 'location groups for map', cleanMapId);
+
+    // Create markers for each location
+    const bounds = [];
+    let validMarkers = 0;
+    let invalidMarkers = 0;
+    
+    Object.values(locationGroups).forEach(talks => {
+      const talk = talks[0]; // Use first talk for coordinates
+      
+      // Validate and parse coordinates
+      const latStr = String(talk.latitude || '').trim();
+      const lonStr = String(talk.longitude || '').trim();
+      
+      // Handle null/undefined/empty
+      if (!latStr || !lonStr || latStr === 'null' || lonStr === 'null' || latStr === 'undefined' || lonStr === 'undefined') {
+        invalidMarkers++;
+        return;
+      }
+      
+      // Parse to numbers
+      const lat = parseFloat(latStr);
+      const lon = parseFloat(lonStr);
+      
+      // Validate coordinates are valid numbers
+      if (isNaN(lat) || isNaN(lon)) {
+        invalidMarkers++;
+        return;
+      }
+      
+      // Validate coordinates are within valid ranges
+      if (lat < -90 || lat > 90) {
+        console.warn('Latitude out of range for talk:', talk.title, 'lat:', lat, 'should be between -90 and 90');
+        invalidMarkers++;
+        return;
+      }
+      
+      if (lon < -180 || lon > 180) {
+        console.warn('Longitude out of range for talk:', talk.title, 'lon:', lon, 'should be between -180 and 180');
+        invalidMarkers++;
+        return;
+      }
+
+      // Coordinates are valid, add to bounds and create marker
+      bounds.push([lat, lon]);
+      validMarkers++;
+      
+      // Helper function to clean string values (remove quotes if present)
+      function cleanString(str) {
+        if (!str) return '';
+        const s = String(str);
+        if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+          return s.slice(1, -1);
+        }
+        return s;
+      }
+      
+      // Generate country flag HTML (similar to countryFlag.html partial)
+      function getCountryFlag(country, countryCode) {
+        if (!country) return '';
+        const code = (countryCode || '').toUpperCase();
+        if (code === 'ONLINE') {
+          return '🌎 ' + country;
+        }
+        if (code && code.length === 2) {
+          // Generate flag emoji from country code (e.g., "FR" -> 🇫🇷)
+          const flag = String.fromCodePoint(
+            code.charCodeAt(0) + 127397,
+            code.charCodeAt(1) + 127397
+          );
+          return flag + ' ' + country;
+        }
+        return country;
+      }
+      
+      // Create popup content
+      let popupContent = '<div style="min-width: 200px; max-width: 300px;">';
+      if (talks.length === 1) {
+        const cleanTitle = cleanString(talk.title);
+        const cleanUrl = cleanString(talk.url);
+        const cleanConference = cleanString(talk.conference);
+        const cleanCity = cleanString(talk.city);
+        const cleanCountry = cleanString(talk.country);
+        const cleanCountryCode = cleanString(talk.country_code);
+        const cleanDate = cleanString(talk.date);
+        
+        // Ensure URL is absolute if it's relative
+        const absoluteUrl = cleanUrl.startsWith('http') ? cleanUrl : (window.location.origin + cleanUrl);
+        
+        popupContent += `<h3 style="margin: 0 0 0.5rem 0; font-weight: 600; font-size: 1rem;"><a href="${absoluteUrl}" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#007bff'" onmouseout="this.style.color='inherit'">${cleanTitle}</a></h3>`;
+        popupContent += `<p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;">${cleanConference}</p>`;
+        if (cleanCity || cleanCountry) {
+          let locationText = '';
+          if (cleanCity) {
+            locationText = '📍 ' + cleanCity;
+          }
+          if (cleanCountry) {
+            const flag = getCountryFlag(cleanCountry, cleanCountryCode);
+            if (locationText) {
+              locationText += ', ' + flag;
+            } else {
+              locationText = '📍 ' + flag;
+            }
+          }
+          popupContent += `<p style="margin: 0.25rem 0; color: #666; font-size: 0.85rem;">${locationText}</p>`;
+        }
+        popupContent += `<p style="margin: 0.25rem 0; color: #666; font-size: 0.85rem;">📅 ${cleanDate}</p>`;
+      } else {
+        const cleanCity = cleanString(talk.city);
+        const cleanCountry = cleanString(talk.country);
+        const cleanCountryCode = cleanString(talk.country_code);
+        
+        popupContent += `<h3 style="margin: 0 0 0.5rem 0; font-weight: 600; font-size: 1rem;">${talks.length} talks</h3>`;
+        if (cleanCity || cleanCountry) {
+          let locationText = '';
+          if (cleanCity) {
+            locationText = '📍 ' + cleanCity;
+          }
+          if (cleanCountry) {
+            const flag = getCountryFlag(cleanCountry, cleanCountryCode);
+            if (locationText) {
+              locationText += ', ' + flag;
+            } else {
+              locationText = '📍 ' + flag;
+            }
+          }
+          popupContent += `<p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;">${locationText}</p>`;
+        }
+        popupContent += '<ul style="margin: 0.5rem 0 0 0; padding-left: 1.25rem; max-height: 200px; overflow-y: auto; list-style-type: disc;">';
+        talks.forEach(t => {
+          const cleanTitle = cleanString(t.title);
+          const cleanUrl = cleanString(t.url);
+          const cleanDate = cleanString(t.date);
+          // Ensure URL is absolute if it's relative
+          const absoluteUrl = cleanUrl.startsWith('http') ? cleanUrl : (window.location.origin + cleanUrl);
+          popupContent += `<li style="margin: 0.5rem 0;"><a href="${absoluteUrl}" style="color: #007bff; text-decoration: none; font-size: 0.85rem; transition: color 0.2s;" onmouseover="this.style.color='#0056b3'" onmouseout="this.style.color='#007bff'">${cleanTitle}</a><br><span style="color: #666; font-size: 0.75rem;">${cleanDate}</span></li>`;
+        });
+        popupContent += '</ul>';
+      }
+      popupContent += '</div>';
+
+      // Create marker
+      const marker = L.marker([lat, lon]).addTo(map);
+      marker.bindPopup(popupContent, {
+        // Allow links in popup to work correctly
+        closeOnClick: false,
+        autoPan: true
+      });
+      
+      // Ensure links in popup work correctly - prevent Leaflet from stopping propagation
+      marker.on('popupopen', function(e) {
+        const popup = e.popup;
+        const container = popup.getElement();
+        if (container) {
+          // Find all links and ensure they work
+          const links = container.querySelectorAll('a');
+          links.forEach(link => {
+            // Remove any existing listeners and add a new one that allows navigation
+            link.onclick = function(e) {
+              e.stopPropagation();
+              // Let the browser handle the navigation naturally
+              return true;
+            };
+          });
+        }
+      });
+      
+      // Generate country flag HTML (similar to countryFlag.html partial)
+      function getCountryFlag(country, countryCode) {
+        if (!country) return '';
+        const code = (countryCode || '').toUpperCase();
+        if (code === 'ONLINE') {
+          return '🌎 ' + country;
+        }
+        if (code && code.length === 2) {
+          // Generate flag emoji from country code (e.g., "FR" -> 🇫🇷)
+          const flag = String.fromCodePoint(
+            code.charCodeAt(0) + 127397,
+            code.charCodeAt(1) + 127397
+          );
+          return flag + ' ' + country;
+        }
+        return country;
+      }
+      
+      // Add tooltip with city name and country flag
+      const cleanCity = cleanString(talk.city);
+      const cleanCountry = cleanString(talk.country);
+      const cleanCountryCode = cleanString(talk.country_code);
+      
+      let tooltipContent = '';
+      if (cleanCity) {
+        tooltipContent = cleanCity;
+      }
+      if (cleanCountry) {
+        const flag = getCountryFlag(cleanCountry, cleanCountryCode);
+        if (tooltipContent) {
+          tooltipContent += ', ' + flag;
+        } else {
+          tooltipContent = flag;
+        }
+      }
+      
+      if (tooltipContent) {
+        marker.bindTooltip(tooltipContent, { permanent: false, direction: 'top' });
+      }
+    });
+
+    console.log('Added', validMarkers, 'valid markers to map', cleanMapId, '(', invalidMarkers, 'invalid markers skipped)');
+
+    // Fit map to show all markers
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+      console.error('No valid markers to display on map', cleanMapId, '!');
+    }
+    };
+  }
+  
+  // Initialize this specific map - use IIFE to avoid variable name conflicts
+  (function() {
+    // Remove quotes from jsonify if present
+    let mapId = {{ $mapId | jsonify }};
+    if (typeof mapId === 'string' && mapId.startsWith('"') && mapId.endsWith('"')) {
+      mapId = mapId.slice(1, -1);
+    }
+    let retryCount = 0;
+    const maxRetries = 100; // Max 10 seconds of retrying
+    
+    console.log('Setting up initialization for map:', mapId);
+    
+    // Try to initialize when Leaflet is loaded and container exists
+    function tryInitMap() {
+      retryCount++;
+      
+      // Check if container exists in DOM - ensure mapId is clean
+      const cleanMapId = String(mapId).replace(/^["']|["']$/g, '');
+      const container = document.getElementById(cleanMapId);
+      if (!container) {
+        if (retryCount < maxRetries) {
+          if (retryCount % 20 === 0) {
+            console.log('Waiting for container:', cleanMapId, 'retry', retryCount, 'raw mapId:', mapId);
+          }
+          requestAnimationFrame(tryInitMap);
+          return;
+        } else {
+          console.error('Map container not found after', maxRetries, 'retries:', cleanMapId, 'raw mapId:', mapId);
+          // Try one more time with querySelector as fallback
+          const containerByQuery = document.querySelector('#' + cleanMapId);
+          if (containerByQuery) {
+            console.log('Found container with querySelector, initializing:', cleanMapId);
+            window.initTalksMap(mapId); // Pass original mapId for data lookup
+          }
+        }
+        return;
+      }
+      
+      // Check if Leaflet is loaded
+      if (typeof L === 'undefined') {
+        if (retryCount < maxRetries) {
+          if (retryCount % 20 === 0) {
+            console.log('Waiting for Leaflet to load, retry', retryCount);
+          }
+          requestAnimationFrame(tryInitMap);
+          return;
+        } else {
+          console.error('Leaflet not loaded after', maxRetries, 'retries');
+        }
+        return;
+      }
+      
+      // Check if initTalksMap function exists
+      if (typeof window.initTalksMap !== 'function') {
+        if (retryCount < maxRetries) {
+          if (retryCount % 20 === 0) {
+            console.log('Waiting for initTalksMap function, retry', retryCount);
+          }
+          requestAnimationFrame(tryInitMap);
+          return;
+        } else {
+          console.error('initTalksMap function not found after', maxRetries, 'retries');
+        }
+        return;
+      }
+      
+      // Check if data is available - use cleanMapId for data lookup
+      if (typeof window.talksMapsData === 'undefined' || !window.talksMapsData[cleanMapId]) {
+        if (retryCount < maxRetries) {
+          if (retryCount % 20 === 0) {
+            console.log('Waiting for talks data for map:', cleanMapId, 'retry', retryCount, 'Available maps:', Object.keys(window.talksMapsData || {}));
+          }
+          requestAnimationFrame(tryInitMap);
+          return;
+        } else {
+          console.error('Talks data not available for map:', cleanMapId, 'Available maps:', Object.keys(window.talksMapsData || {}));
+        }
+        return;
+      }
+      
+      // All conditions met, initialize the map
+      console.log('All conditions met, initializing map:', cleanMapId);
+      window.initTalksMap(mapId); // Pass original mapId - function will handle cleaning
+    }
+    
+    // Start initialization - wait for window to be fully loaded
+    function startInit() {
+      // Use requestAnimationFrame to ensure DOM is fully rendered
+      requestAnimationFrame(function() {
+        requestAnimationFrame(tryInitMap);
+      });
+    }
+    
+    if (document.readyState === 'loading') {
+      // Wait for both DOMContentLoaded and window load
+      let domReady = false;
+      let windowReady = false;
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        domReady = true;
+        if (windowReady) startInit();
+      });
+      
+      window.addEventListener('load', function() {
+        windowReady = true;
+        if (domReady) startInit();
+      });
+    } else if (document.readyState === 'interactive') {
+      // DOM is ready but resources might still be loading
+      window.addEventListener('load', startInit);
+    } else {
+      // Everything is ready
+      startInit();
+    }
+  })();
+</script>
+
+<!-- Leaflet JS - Load once globally (only load if not already loaded) -->
+<script>
+  if (typeof window.leafletScriptLoading === 'undefined') {
+    window.leafletScriptLoading = false;
+  }
+  
+  if (typeof L === 'undefined' && !window.leafletScriptLoading) {
+    window.leafletScriptLoading = true;
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+    script.crossOrigin = '';
+    script.onload = function() {
+      console.log('Leaflet loaded successfully');
+      window.leafletScriptLoading = false;
+    };
+    script.onerror = function() {
+      console.error('Failed to load Leaflet');
+      window.leafletScriptLoading = false;
+    };
+    document.head.appendChild(script);
+  }
+</script>
+{{ else }}
+<div class="alert alert-info" style="margin: 2rem 0;">
+  <p>{{ i18n "noTalksWithCoords" }}</p>
+</div>
+{{ end }}
+

@@ -1,0 +1,66 @@
+{{/* Author partial - supports both single author and multiple authors format */}}
+{{/* Single author format: author, avatar, authorlink */}}
+{{/* Multiple authors format: authors: [{author, avatar, link}, ...] */}}
+
+{{ $params := .Params }}
+{{ $template := .template }}
+
+{{/* Check if we have multiple authors */}}
+{{ if $params.authors }}
+  {{/* Multiple authors */}}
+  <div class="flex items-center flex-wrap gap-2">
+    {{ range $index, $author := $params.authors }}
+      <div class="flex items-center">
+        {{ if $author.avatar }}
+        <div class="avatar mr-1">
+          <div class="w-8 rounded-full">
+            <img class="my-0!" src="{{ $author.avatar }}" alt="{{ $author.author }}" />
+          </div>
+        </div>
+        {{ else }}
+        <span>@</span>
+        {{ end }}
+
+        {{/* Support both "link" and "authorlink" for flexibility */}}
+        {{ $authorLink := or $author.link $author.authorlink }}
+        <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+        {{ if and $authorLink (eq $template "single") }}
+          <a itemprop="url" href="{{ $authorLink }}" target="_blank">
+            <span itemprop="name">{{ $author.author }}</span>
+          </a>
+        {{ else }}
+          <span itemprop="name">{{ $author.author }}</span>
+        {{ end }}
+        </span>
+      </div>
+    {{ end }}
+  </div>
+{{ else }}
+  {{/* Single author (backward compatible) */}}
+  <div class="flex items-center">
+    {{ if $params.avatar }}
+    <div class="avatar mr-1">
+      <div class="w-8 rounded-full">
+        <img class="my-0!" src="{{ $params.avatar }}" alt="{{ $params.author }}" />
+      </div>
+    </div>
+    {{ else }}
+    <span>@</span>
+    {{ end }}
+
+    <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+    {{ if $params.author }}
+      {{ if and $params.authorlink (eq $template "single") }}
+        <a itemprop="url" href="{{ $params.authorlink }}" target="_blank">
+          <span itemprop="name">{{ $params.author }}</span>
+        </a>
+      {{ else }}
+        <span itemprop="name">{{ $params.author }}</span>
+      {{ end }}
+    {{ else }}
+      <span itemprop="name">{{ site.Params.author }}</span>
+    {{ end }}
+    </span>
+  </div>
+{{ end }}
+

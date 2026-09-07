@@ -1,0 +1,10 @@
+{{/* Sort key for empty-query browse: date desc (ISO lexicographic / Pagefind string sort). */}}
+{{- $d := .Date -}}
+{{- if $d.IsZero -}}
+  {{- $d = .Lastmod -}}
+{{- end -}}
+{{- if $d.IsZero -}}
+<meta data-pagefind-sort="date:1970-01-01" />
+{{- else -}}
+<meta data-pagefind-sort="date:{{ $d.Format "2006-01-02" }}" />
+{{- end -}}

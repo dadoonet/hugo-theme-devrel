@@ -1,0 +1,10 @@
+{{ if ne site.Params.search.enabled false }}
+<link href="{{ "pagefind/pagefind-component-ui.css" | relURL }}" rel="stylesheet">
+<script src="{{ "pagefind/pagefind-component-ui.js" | relURL }}" type="module"></script>
+<pagefind-config
+  faceted
+  preload
+  excerpt-length="{{ site.Params.search.excerptLength | default 15 }}"
+  {{ with site.Params.search.bundlePath }}bundle-path="{{ . }}"{{ end }}
+></pagefind-config>
+{{ end }}

@@ -1,0 +1,661 @@
+{{ define "title" }}
+{{- .Title -}}
+{{ end }}
+
+{{ define "main"}}
+
+<style>
+  /* Featured talks cards - asymmetric layout */
+  .featured-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  @media (min-width: 768px) {
+    .featured-grid { 
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+    .featured-card.featured-main {
+      grid-row: 1 / 3;
+      aspect-ratio: auto;
+    }
+  }
+  
+  .featured-card {
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+    aspect-ratio: 16/10;
+    background: oklch(var(--b2));
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .featured-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+  .featured-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+  .featured-card:hover img {
+    transform: scale(1.1);
+  }
+  .featured-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.5rem;
+  }
+  .featured-main .featured-title {
+    font-size: 1.5rem;
+  }
+  .featured-main .featured-meta {
+    font-size: 1rem;
+  }
+  .featured-title {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .featured-meta {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Section separator */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 3rem 0;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, oklch(var(--p) / 0.3), transparent);
+  }
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: oklch(var(--bc));
+    white-space: nowrap;
+  }
+
+  /* Upcoming talks table */
+  .upcoming-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .upcoming-table tr {
+    border-bottom: 1px solid oklch(var(--bc) / 0.1);
+    transition: background 0.2s ease;
+  }
+  .upcoming-table tr:hover {
+    background: oklch(var(--p) / 0.05);
+  }
+  .upcoming-table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+  }
+  .upcoming-title {
+    font-weight: 600;
+    color: oklch(var(--bc));
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .upcoming-title a {
+    opacity: 0;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+  }
+  .upcoming-conf {
+    color: oklch(var(--bc) / 0.7);
+    font-size: 0.9rem;
+  }
+  .upcoming-conf a {
+    color: oklch(var(--p));
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .upcoming-conf a:hover {
+    color: oklch(var(--s));
+    text-decoration: underline;
+  }
+  .upcoming-date {
+    color: oklch(var(--p));
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  /* Past talks table */
+  .past-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .past-table tr {
+    border-bottom: 1px solid oklch(var(--bc) / 0.1);
+    transition: background 0.2s ease;
+  }
+  .past-table tr:hover {
+    background: oklch(var(--p) / 0.05);
+  }
+  .past-table td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: middle;
+  }
+  .past-title a {
+    font-weight: 600;
+    color: oklch(var(--bc));
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .past-title a:hover {
+    color: oklch(var(--p));
+  }
+  .past-conf {
+    color: oklch(var(--bc) / 0.6);
+    font-size: 0.85rem;
+  }
+  .past-conf a {
+    color: oklch(var(--p));
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .past-conf a:hover {
+    color: oklch(var(--s));
+    text-decoration: underline;
+  }
+  .past-date {
+    color: oklch(var(--bc) / 0.5);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  /* More button */
+  .more-button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+  }
+  .more-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 2rem;
+    background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%);
+    color: oklch(var(--pc));
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px oklch(var(--p) / 0.3);
+  }
+  .more-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px oklch(var(--p) / 0.4);
+  }
+
+  /* Video thumbnails grid */
+  .video-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 768px) {
+    .video-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .video-card {
+    position: relative;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    background: oklch(var(--b2));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  .video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+  .video-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .video-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0.75rem;
+  }
+  .video-title {
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .video-date {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Template preview cards */
+  .template-preview-card {
+    position: relative;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: oklch(var(--b2));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+  }
+  .template-preview-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+  .template-preview-cover {
+    position: relative;
+    height: 100px;
+    overflow: hidden;
+  }
+  .template-preview-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  .template-preview-card:hover .template-preview-cover img {
+    transform: scale(1.05);
+  }
+  .template-preview-header {
+    padding: 1rem;
+    background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%);
+    color: oklch(var(--pc));
+  }
+  .template-preview-header.no-cover {
+    padding: 1rem;
+    background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%);
+    color: oklch(var(--pc));
+  }
+  .template-preview-header.with-cover {
+    padding: 0.75rem 1rem;
+    background: transparent;
+    color: oklch(var(--bc));
+  }
+  .template-preview-title {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .template-preview-body {
+    padding: 0.75rem 1rem;
+    flex: 1;
+  }
+  .template-preview-abstract {
+    color: oklch(var(--bc) / 0.7);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .template-preview-footer {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid oklch(var(--bc) / 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+  }
+  .template-preview-count {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: oklch(var(--p));
+    font-weight: 600;
+  }
+  .template-preview-count ion-icon {
+    font-size: 0.9rem;
+  }
+  .template-preview-date {
+    color: oklch(var(--bc) / 0.5);
+  }
+</style>
+
+{{/* Get all talks and sort by date descending, excluding special pages */}}
+{{ $allTalks := .Pages.ByDate.Reverse }}
+{{ $now := now }}
+
+{{/* Separate upcoming and past talks, excluding special pages (templates, all, map, videos) */}}
+{{ $scratch := newScratch }}
+{{ $scratch.Set "upcoming" slice }}
+{{ $scratch.Set "past" slice }}
+{{ range $allTalks }}
+  {{ $dir := .File.Dir }}
+  {{ if not (or (in $dir "templates/") (in $dir "all/") (in $dir "map/") (in $dir "videos/")) }}
+    {{ if gt .Date $now }}
+      {{ $scratch.Add "upcoming" (slice .) }}
+    {{ else }}
+      {{ $scratch.Add "past" (slice .) }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ $upcomingTalks := $scratch.Get "upcoming" }}
+{{ $pastTalks := $scratch.Get "past" }}
+
+{{/* Get talks with videos */}}
+{{ $scratch.Set "withVideo" slice }}
+{{ range $pastTalks }}
+  {{ if .Params.youtube }}
+    {{ $scratch.Add "withVideo" (slice .) }}
+  {{ end }}
+{{ end }}
+{{ $talksWithVideo := $scratch.Get "withVideo" }}
+
+{{/* Recent talks = first 3 past talks */}}
+{{ $recentTalks := first 3 $pastTalks }}
+{{/* Older talks = past talks after the first 3, limited to 25 */}}
+{{ $olderTalks := first 10 (after 3 $pastTalks) }}
+{{/* Recent videos = first 4 talks with video */}}
+{{ $recentVideos := first 4 $talksWithVideo }}
+
+<div class="mt-8 px-4" style="padding-left: 2rem; padding-right: 2rem;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    
+    {{/* Recent Presentations - Featured Cards */}}
+    {{ if $recentTalks }}
+    <div class="section-divider">
+      <span class="section-title">🎤 {{ i18n "recentPresentations" }}</span>
+    </div>
+    
+    <section class="mb-8">
+      <div class="featured-grid">
+        {{ range $index, $talk := $recentTalks }}
+        <a href="{{ $talk.RelPermalink }}" class="featured-card{{ if eq $index 0 }} featured-main{{ end }}">
+          {{ $cover := "" }}
+          {{ if $talk.Params.cover }}
+            {{ $cover = $talk.Resources.GetMatch $talk.Params.cover }}
+          {{ else }}
+            {{ $cover = $talk.Resources.GetMatch "cover.*" }}
+          {{ end }}
+          {{ if $cover }}
+          <img src="{{ $cover.RelPermalink }}" alt="{{ $talk.Title }}" loading="lazy" />
+          {{ else }}
+          <div style="background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%); width: 100%; height: 100%;"></div>
+          {{ end }}
+          <div class="featured-overlay">
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+              {{ partial "langLabel.html" $talk }}
+              {{ partial "videoLabel.html" $talk }}
+              {{ partial "slidesLabel.html" $talk }}
+            </div>
+            <h3 class="featured-title">{{ $talk.Title }}</h3>
+            <div class="featured-meta">
+              {{ partial "countryFlag.html" $talk.Params.conference }}
+              <span>{{ $talk.Params.conference.name }}</span>
+              <span>•</span>
+              <span>{{ $talk.Date | time.Format "January 2006" }}</span>
+            </div>
+          </div>
+        </a>
+        {{ end }}
+      </div>
+    </section>
+    {{ end }}
+
+    {{/* Upcoming Presentations */}}
+    {{ if $upcomingTalks }}
+    <div class="section-divider">
+      <span class="section-title">📅 {{ i18n "upcomingPresentations" }}</span>
+    </div>
+    
+    <section class="mb-8">
+      <table class="upcoming-table">
+        <tbody>
+          {{ range $upcomingTalks }}
+          <tr>
+            <td style="width: 50%;">
+              <div class="upcoming-title">
+                {{ .Title }}
+                {{ partial "langLabel.html" . }}
+                <a href="{{ .RelPermalink }}" title="Voir les détails">&nbsp;                </a>
+              </div>
+            </td>
+            <td>
+              <div class="upcoming-conf">
+                {{ partial "countryFlag.html" .Params.conference }}
+                {{ if .Params.conference.url }}
+                <a href="{{ .Params.conference.url }}" target="_blank" rel="noopener noreferrer">{{ .Params.conference.name }}</a>
+                {{ else }}
+                {{ .Params.conference.name }}
+                {{ end }}{{ if and .Params.conference.city (ne .Params.conference.city "") }}, {{ if and .Params.conference.latitude .Params.conference.longitude }}<a href="https://www.google.com/maps?q={{ .Params.conference.latitude }},{{ .Params.conference.longitude }}" target="_blank" rel="noopener noreferrer">{{ .Params.conference.city }}</a>{{ else }}{{ .Params.conference.city }}{{ end }}{{ end }}
+              </div>
+            </td>
+            <td class="upcoming-date">
+              {{ .Date | time.Format "January 2, 2006" }}
+            </td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </section>
+    {{ end }}
+
+    {{/* Older Presentations */}}
+    {{ if $olderTalks }}
+    <div class="section-divider">
+      <span class="section-title">📚 {{ i18n "olderPresentations" }}</span>
+    </div>
+    
+    <section class="mb-4">
+      <table class="past-table">
+        <tbody>
+          {{ range $olderTalks }}
+          <tr>
+            <td style="width: 50%;" class="past-title">
+              <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+              {{ partial "langLabel.html" . }}
+              {{ partial "slidesLabel.html" . }}
+              {{ partial "videoLabel.html" . }}
+            </td>
+            <td class="past-conf">
+              {{ partial "countryFlag.html" .Params.conference }}
+              {{ if .Params.conference.url }}
+              <a href="{{ .Params.conference.url }}" target="_blank" rel="noopener noreferrer">{{ .Params.conference.name }}</a>
+              {{ else }}
+              {{ .Params.conference.name }}
+              {{ end }}{{ if and .Params.conference.city (ne .Params.conference.city "") }}, {{ if and .Params.conference.latitude .Params.conference.longitude }}<a href="https://www.google.com/maps?q={{ .Params.conference.latitude }},{{ .Params.conference.longitude }}" target="_blank" rel="noopener noreferrer">{{ .Params.conference.city }}</a>{{ else }}{{ .Params.conference.city }}{{ end }}{{ end }}
+            </td>
+            <td class="past-date">
+              {{ .Date | time.Format "January 2006" }}
+            </td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+      
+      <div class="more-button-container">
+        <a href="/talks/all/" class="more-button">
+          More presentations
+          <ion-icon name="arrow-forward"></ion-icon>
+        </a>
+      </div>
+    </section>
+    {{ end }}
+
+    {{/* Videos Section */}}
+    {{ if $recentVideos }}
+    <div class="section-divider">
+      <span class="section-title">🎬 {{ i18n "latestVideos" }}</span>
+    </div>
+    
+    <section class="mb-12">
+      <div class="video-grid">
+        {{ range $recentVideos }}
+        <a href="{{ .RelPermalink }}#video" class="video-card">
+          {{/* Try to get YouTube thumbnail */}}
+          {{ $youtubeId := .Params.youtube }}
+          {{ $cover := .Resources.GetMatch .Params.cover }}
+          {{ if $youtubeId }}
+          <img src="https://img.youtube.com/vi/{{ $youtubeId }}/maxresdefault.jpg" alt="{{ .Title }}" loading="lazy" />
+          {{ else if $cover }}
+          <img src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" loading="lazy" />
+          {{ end }}
+          <div class="video-overlay">
+            <div class="video-title">{{ .Title }}</div>
+            <div class="video-date">{{ .Date | time.Format "January 2006" }}</div>
+          </div>
+        </a>
+        {{ end }}
+      </div>
+      
+      <div class="more-button-container">
+        <a href="/talks/videos/" class="more-button">
+          More videos
+          <ion-icon name="arrow-forward"></ion-icon>
+        </a>
+      </div>
+    </section>
+    {{ end }}
+
+    {{/* Talk Templates Section */}}
+    {{ $templatesSection := site.GetPage "/talks/templates" }}
+    {{ if $templatesSection }}
+    {{ $templates := $templatesSection.Pages }}
+    {{/* Build a slice of maps with template and its latest played date */}}
+    {{ $templatesWithDates := slice }}
+    {{/* Get all talks excluding templates */}}
+    {{ $allTalksForTemplates := where (where site.RegularPages "Section" "talks") ".File.Dir" "not in" (slice "talks/templates/") }}
+    {{ range $templates }}
+      {{ $talkName := .Params.talk }}
+      {{ $latestDate := time "1970-01-01" }}
+      {{ $playedCount := 0 }}
+      {{ range where $allTalksForTemplates ".Params.talk" $talkName }}
+        {{ $playedCount = add $playedCount 1 }}
+        {{ if gt .Date $latestDate }}
+          {{ $latestDate = .Date }}
+        {{ end }}
+      {{ end }}
+      {{ $templatesWithDates = $templatesWithDates | append (dict "template" . "latestDate" $latestDate "playedCount" $playedCount) }}
+    {{ end }}
+    {{/* Sort by latestDate descending (most recent first) */}}
+    {{ $sortedTemplates := sort $templatesWithDates "latestDate" "desc" }}
+    {{ $recentTemplates := first 4 $sortedTemplates }}
+    {{ if $recentTemplates }}
+    <div class="section-divider">
+      <span class="section-title">📋 {{ i18n "talkTemplates" }}</span>
+    </div>
+    
+    <section class="mb-12">
+      <div class="video-grid">
+        {{ range $recentTemplates }}
+        {{ $template := .template }}
+        {{ $playedCount := .playedCount }}
+        {{ $latestDate := .latestDate }}
+
+        {{/* Get display title from versions if available */}}
+        {{ $displayTitle := $template.Title }}
+        {{ with $template.Params.versions }}
+          {{ $firstVersion := index . 0 }}
+          {{ $displayTitle = $firstVersion.title }}
+        {{ end }}
+
+        {{/* Cover image detection */}}
+        {{ $cover := "" }}
+        {{ if $template.Params.cover }}
+          {{ $cover = $template.Resources.GetMatch $template.Params.cover }}
+        {{ else }}
+          {{ $cover = $template.Resources.GetMatch "cover.*" }}
+        {{ end }}
+
+        <a href="{{ $template.RelPermalink }}" class="template-preview-card">
+          {{ if $cover }}
+          <div class="template-preview-cover">
+            <img src="{{ $cover.RelPermalink }}" alt="{{ $displayTitle }}" loading="lazy" />
+          </div>
+          <div class="template-preview-header with-cover">
+            <h3 class="template-preview-title">{{ $displayTitle }}</h3>
+          </div>
+          {{ else }}
+          <div class="template-preview-header no-cover">
+            <h3 class="template-preview-title">{{ $displayTitle }}</h3>
+          </div>
+          {{ end }}
+          <div class="template-preview-body">
+            <p class="template-preview-abstract">{{ $template.Summary | plainify | truncate 100 }}</p>
+          </div>
+          <div class="template-preview-footer">
+            <span class="template-preview-count">
+              <ion-icon name="mic"></ion-icon>
+              {{ $playedCount }} times
+            </span>
+            <span class="template-preview-date">{{ if gt $playedCount 0 }}Last {{ $latestDate | time.Format "Jan 2006" }}{{ else }}Never played{{ end }}</span>
+          </div>
+        </a>
+        {{ end }}
+      </div>
+      
+      <div class="more-button-container">
+        <a href="/talks/templates/" class="more-button">
+          {{ i18n "moreTemplates" }}
+          <ion-icon name="arrow-forward"></ion-icon>
+        </a>
+      </div>
+    </section>
+    {{ end }}
+    {{ end }}
+
+  </div>
+
+{{/* Ajouter la carte des talks - tous les talks */}}
+<div class="section-divider">
+  <span class="section-title">🗺️ {{ i18n "talksMap" }}</span>
+</div>
+{{ partial "talks-map.html" . }}
+
+</div>
+
+{{ end }}

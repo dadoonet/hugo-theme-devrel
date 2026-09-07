@@ -1,0 +1,7 @@
+{{ $pdf := .Resources.GetMatch "*.pdf" }}
+{{ if or $pdf .Params.pdf }}
+<span class="badge badge-primary badge-sm" title="Slides">
+  <ion-icon name="easel" class="text-xs"></ion-icon>
+</span>
+{{ end }}
+

@@ -1,0 +1,40 @@
+baseURL = "https://example.org/"
+title = "DevRel Example"
+locale = "en-us"
+defaultContentLanguage = "en"
+
+[module]
+  [[module.imports]]
+    path = "github.com/dadoonet/hugo-theme-devrel"
+  # Reuse the last Pagefind index during `hugo server`
+  [[module.mounts]]
+    source = "content"
+    target = "content"
+  [[module.mounts]]
+    source = "static"
+    target = "static"
+  [[module.mounts]]
+    source = "data"
+    target = "data"
+  [[module.mounts]]
+    source = "public/pagefind"
+    target = "static/pagefind"
+    disableWatch = true
+
+[params]
+  author = "Alex Rivera"
+  description = "Developer Advocate | Speaker"
+  avatar = "/about/alex.svg"
+  headerTitle = "Alex Rivera"
+  motto = "Developer Advocate | Speaker"
+  email = "alex@example.org"
+  siteStartYear = 2024
+  favicon = "favicon.ico"
+  rss = true
+  reorderNavItems = ["search", "posts", "talks", "about_me"]
+
+  [params.talks]
+    pdf_base_url = ""
+
+  [params.search]
+    enabled = true

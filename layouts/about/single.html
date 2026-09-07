@@ -1,0 +1,26 @@
+{{ define "title" }}{{ .Title }}{{ end }}
+
+{{ define "main" }}
+<div class="mt-8 px-4 max-w-4xl mx-auto">
+  <article class="prose prose-quoteless dark:prose-invert mx-auto" data-pagefind-body data-pagefind-filter="section:about">
+    {{ partial "pagefind-type-meta.html" . }}
+    {{ partial "pagefind-sort-meta.html" . }}
+    <span data-pagefind-meta="title" hidden>{{ .Title }}</span>
+
+    <section class="mb-8" data-pagefind-ignore>
+      <h2>Social Links</h2>
+      {{ partial "socials.html" . }}
+    </section>
+
+    {{ range sort (.Resources.Match "*.md") "Name" }}
+    <section class="mb-8">
+      <h2>{{ .Title }}</h2>
+      {{ .Content }}
+    </section>
+    {{ end }}
+
+    {{ .Content }}
+
+  </article>
+</div>
+{{ end }}

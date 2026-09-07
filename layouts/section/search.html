@@ -1,0 +1,78 @@
+{{ define "title" }}
+{{- T "search" -}}
+{{ end }}
+
+{{ define "main" }}
+
+{{ if site.Params.zenMode }}
+<div class="max-w-[65ch] mt-8 lg:mt-12 mx-auto px-4">
+{{ else }}
+<div class="mt-8 lg:mt-12 px-4 max-w-3xl mx-auto">
+{{ end }}
+  <h1 class="text-2xl font-bold mb-6">{{ T "search" }}</h1>
+  {{ if ne site.Params.search.enabled false }}
+  {{ $preset := "" }}
+  {{ if eq .Section "posts" }}
+    {{ $preset = "posts" }}
+  {{ else if eq .Section "talks" }}
+    {{ if strings.Contains .RelPermalink "/talks/templates" }}
+      {{ $preset = "templates" }}
+    {{ else if strings.Contains .RelPermalink "/talks/videos" }}
+      {{ $preset = "videos" }}
+    {{ else }}
+      {{ $preset = "talks" }}
+    {{ end }}
+  {{ end }}
+  <div class="devrel-pf-page" data-devrel-preset="{{ $preset }}">
+    <div class="devrel-pf-filters mb-4">
+      <pagefind-filter-dropdown
+        filter="section"
+        label="{{ i18n "searchFilterSection" | default "Section" }}"
+        single-select
+        show-empty
+      ></pagefind-filter-dropdown>
+    </div>
+    <pagefind-input placeholder="{{ i18n "searchPlaceholder" | default "Search…" }}" autofocus></pagefind-input>
+    <pagefind-summary class="block mt-3"></pagefind-summary>
+    <pagefind-results show-images class="block mt-4"></pagefind-results>
+  </div>
+  <script type="module">
+  (function () {
+    const q = new URLSearchParams(window.location.search).get('q') || '';
+    const root = document.querySelector('.devrel-pf-page');
+    if (!root || typeof window.PagefindComponents === 'undefined') {
+      if (root) {
+        root.innerHTML = '<p class="text-base-content/60 text-sm">{{ i18n "searchIndexMissing" }}</p>';
+      }
+      return;
+    }
+    const preset = root.getAttribute('data-devrel-preset') || '';
+    (async () => {
+      try {
+        const dark = document.documentElement.classList.contains('dark');
+        if (dark) root.setAttribute('data-pf-theme', 'dark');
+        const getInstance = window.devrelPagefindGetInstance;
+        let instance;
+        if (typeof getInstance === 'function') {
+          instance = await getInstance();
+        } else {
+          const manager = window.PagefindComponents.getInstanceManager();
+          instance = manager.getInstance('default');
+          await instance.triggerLoad();
+        }
+        if (!instance) return;
+        if (preset) instance.triggerFilter('section', [preset]);
+        if (q) instance.triggerSearch(q);
+        else instance.triggerSearch('');
+      } catch (e) {
+        console.warn('Pagefind search page init failed:', e);
+      }
+    })();
+  })();
+  </script>
+  {{ else }}
+  <p class="text-base-content/60">{{ i18n "searchDisabled" }}</p>
+  {{ end }}
+</div>
+
+{{ end }}

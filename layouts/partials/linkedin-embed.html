@@ -1,0 +1,17 @@
+{{- /*
+  Embed a LinkedIn post via the official iframe.
+  Expected parameters:
+    - id: activity id (urn:li:activity:{id})
+*/ -}}
+{{- $id := .id -}}
+{{- if $id -}}
+<div class="linkedin-embed">
+  <iframe
+    src="https://www.linkedin.com/embed/feed/update/urn:li:activity:{{ $id }}"
+    title="LinkedIn post"
+    loading="lazy"
+    allowfullscreen></iframe>
+</div>
+{{- else -}}
+  {{- errorf "The linkedin-embed partial requires an id. Got id=%v" $id -}}
+{{- end -}}

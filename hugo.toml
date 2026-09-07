@@ -1,0 +1,47 @@
+# hugo-theme-devrel — DevRel overlay on Dream
+# This is NOT a standalone theme. It imports Dream and overlays DevRel layouts.
+
+[module]
+  [module.hugoVersion]
+    min = "0.120.0"
+    extended = true
+
+  [[module.imports]]
+    path = "github.com/g1eny0ung/hugo-theme-dream"
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+  series = "series"
+  city = "cities"
+  language = "languages"
+
+[params]
+  lightTheme = "emerald"
+  darkTheme = "forest"
+  noDefaultSummaryCover = true
+  showTableOfContents = true
+  showSummaryCoverInPost = true
+  imageZoomableInPost = true
+  showPrevNextPost = true
+  stickyNav = true
+  # Include "search" so Dream shows the nav icon (theme ships content/search/_index.md)
+  reorderNavItems = ["search", "posts", "talks", "about_me"]
+  collapseNavItems = ["categories", "tags", "rss"]
+
+  [params.navItems]
+    talks = { href = "/talks", icon = "mic", title = "Talks" }
+    about_me = { href = "/about", icon = "body", title = "About me" }
+
+  # Optional remote PDF base URL (GCS, S3, CDN…). Empty = treat pdf paths as site-relative / page-bundle.
+  [params.talks]
+    pdf_base_url = ""
+
+  # Pagefind full-text search (build index with: npx pagefind --site public)
+  [params.search]
+    enabled = true
+    # showImages = true
+    # excerptLength = 15
+
+  [params.advanced]
+    customCSS = ["css/custom.css"]

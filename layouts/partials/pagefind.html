@@ -1,0 +1,168 @@
+{{/* Pagefind Component UI modal (B′): loupe / Cmd+K, same-line section filter when querying. */}}
+{{ if ne site.Params.search.enabled false }}
+  {{ $preset := "" }}
+  {{ if eq .Section "posts" }}
+    {{ $preset = "posts" }}
+  {{ else if eq .Section "talks" }}
+    {{ if strings.Contains .RelPermalink "/talks/templates" }}
+      {{ $preset = "templates" }}
+    {{ else if strings.Contains .RelPermalink "/talks/videos" }}
+      {{ $preset = "videos" }}
+    {{ else }}
+      {{ $preset = "talks" }}
+    {{ end }}
+  {{ end }}
+
+  {{ $resultTmpl := `
+<li class="pf-result">
+  <div class="pf-result-card devrel-pf-result">
+    {{#if and(options.show_images, meta.image)}}
+    <img class="pf-result-image" src="{{ meta.image }}" alt="{{ meta.image_alt | default(meta.title) }}">
+    {{/if}}
+    <div class="pf-result-content">
+      <p class="pf-result-title">
+        {{#if meta.type}}<span class="devrel-pf-type" data-type="{{ meta.type }}" aria-hidden="true"></span>{{/if}}
+        <a class="pf-result-link" href="{{ url | safeUrl }}">{{ meta.title | default("Untitled") }}</a>
+      </p>
+      {{#if excerpt}}
+      <p class="pf-result-excerpt">{{+ excerpt +}}</p>
+      {{/if}}
+    </div>
+  </div>
+</li>
+` }}
+
+<div class="devrel-pf-root" data-devrel-preset="{{ $preset }}">
+  <pagefind-modal reset-on-close>
+    <pagefind-modal-header>
+      <div class="devrel-pf-modal-toolbar">
+        <pagefind-input placeholder="{{ i18n "searchPlaceholder" | default "Search…" }}"></pagefind-input>
+        <div class="devrel-pf-filter-wrap" data-devrel-filter-wrap hidden>
+          <pagefind-filter-dropdown
+            filter="section"
+            label="{{ i18n "searchFilterSection" | default "Section" }}"
+            single-select
+            show-empty
+          ></pagefind-filter-dropdown>
+        </div>
+      </div>
+    </pagefind-modal-header>
+    <pagefind-modal-body>
+      <pagefind-summary></pagefind-summary>
+      <pagefind-results show-images>
+        <script type="text/pagefind-template">{{ $resultTmpl | safeHTML }}</script>
+      </pagefind-results>
+    </pagefind-modal-body>
+    <pagefind-modal-footer>
+      <pagefind-keyboard-hints></pagefind-keyboard-hints>
+    </pagefind-modal-footer>
+  </pagefind-modal>
+</div>
+
+<script type="module">
+(function () {
+  // Component UI has no triggerSort; empty query must pass sort via pagefind.search options.
+  // Non-empty query: omit sort → relevance score (Pagefind default).
+  // Empty query (browse / filter alone): sort date desc.
+  function installDateSortHook(instance) {
+    const pf = instance && instance.__pagefind__;
+    if (!pf || pf.__devrelDateSort) return;
+    const original = pf.search.bind(pf);
+    pf.search = (term, options = {}) => {
+      const opts = { ...(options || {}) };
+      const empty = term == null || !String(term).trim();
+      if (empty) opts.sort = { date: 'desc' };
+      else delete opts.sort;
+      return original(term, opts);
+    };
+    pf.__devrelDateSort = true;
+  }
+
+  async function getInstance() {
+    if (typeof window.PagefindComponents === 'undefined') return null;
+    const manager = window.PagefindComponents.getInstanceManager();
+    const instance = manager.getInstance('default');
+    await instance.triggerLoad();
+    installDateSortHook(instance);
+    return instance;
+  }
+
+  window.devrelPagefindGetInstance = getInstance;
+
+  const root = document.querySelector('.devrel-pf-root');
+  const modal = root && root.querySelector('pagefind-modal');
+  if (!root || !modal) return;
+
+  const preset = root.getAttribute('data-devrel-preset') || '';
+  const filterWrap = root.querySelector('[data-devrel-filter-wrap]');
+
+  function syncTheme() {
+    const dark = document.documentElement.classList.contains('dark');
+    document.querySelectorAll('.devrel-pf-root, .devrel-pf-page, pagefind-modal, pagefind-config').forEach((el) => {
+      if (dark) el.setAttribute('data-pf-theme', 'dark');
+      else el.removeAttribute('data-pf-theme');
+    });
+  }
+
+  function setFilterVisible(on) {
+    if (!filterWrap) return;
+    if (on) filterWrap.removeAttribute('hidden');
+    else filterWrap.setAttribute('hidden', '');
+  }
+
+  async function applyPreset() {
+    try {
+      const instance = await getInstance();
+      if (!instance) return;
+      if (preset) instance.triggerFilter('section', [preset]);
+      else instance.triggerFilters({});
+    } catch (e) {
+      console.warn('Pagefind filter preset failed:', e);
+    }
+  }
+
+  async function openSearch() {
+    syncTheme();
+    await applyPreset();
+    setFilterVisible(false);
+    modal.open();
+  }
+
+  // Wire loupe buttons in the nav
+  document.querySelectorAll('[data-devrel-search-open]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openSearch();
+    });
+  });
+
+  // Cmd/Ctrl+K
+  document.addEventListener('keydown', (e) => {
+    if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'k') return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+    e.preventDefault();
+    openSearch();
+  });
+
+  // Show section filter only once there is a query; sort hook already active via getInstance
+  (async () => {
+    try {
+      const instance = await getInstance();
+      if (!instance) return;
+      instance.on('search', (term) => {
+        setFilterVisible(Boolean(term && String(term).trim()));
+      });
+    } catch (e) {
+      console.warn('Pagefind search listener failed:', e);
+    }
+  })();
+
+  syncTheme();
+  const obs = new MutationObserver(syncTheme);
+  obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+  window.devrelOpenSearch = openSearch;
+})();
+</script>
+{{ end }}

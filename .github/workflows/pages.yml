@@ -53,6 +53,14 @@ jobs:
         id: pages
         uses: actions/configure-pages@v6
 
+      # configure-pages can return the user-site redirect URL
+      # (http://david.pilato.fr/hugo-theme-devrel/) instead of the project
+      # custom domain. Always build with exampleSite/hugo.toml baseURL.
+      - name: Log Pages base URL (informational)
+        run: |
+          echo "configure-pages base_url=${{ steps.pages.outputs.base_url }}"
+          echo "Using exampleSite/hugo.toml baseURL for the Hugo build."
+
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
@@ -92,10 +100,10 @@ jobs:
           HUGO_ENVIRONMENT: production
         run: |
           hugo mod tidy
-          hugo \
-            --gc \
-            --minify \
-            --baseURL "${{ steps.pages.outputs.base_url }}/"
+          # Do NOT pass --baseURL from configure-pages: with a user-site
+          # custom domain (david.pilato.fr) it can emit the broken project
+          # path under that host. exampleSite/hugo.toml is authoritative.
+          hugo --gc --minify
           npx pagefind --site public
 
       - name: Upload Pages artifact

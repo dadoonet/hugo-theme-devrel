@@ -1,4 +1,4 @@
-baseURL = "https://dadoonet.github.io/hugo-theme-devrel/"
+baseURL = "https://devrel.hugo.pilato.fr/"
 title = "DevRel Example"
 locale = "en-us"
 defaultContentLanguage = "en"

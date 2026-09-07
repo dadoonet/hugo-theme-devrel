@@ -4,6 +4,8 @@
 
 This is **not** a standalone theme. It imports Dream as a Hugo module dependency and overlays layouts for posts, talks, talk templates, map, videos, and about. End users only import `devrel` — Dream is pulled automatically.
 
+**Live example:** [david.pilato.fr](https://david.pilato.fr/) runs on this theme.
+
 ```toml
 [[module.imports]]
   path = "github.com/dadoonet/hugo-theme-devrel"
@@ -167,11 +169,11 @@ hugo new talks/templates/my-talk/index.md
 
 Ship these `_index.md` files (also in `exampleSite/`):
 
-| Path | Front matter |
-|------|----------------|
-| `content/talks/all/_index.md` | `layout: "all"` |
-| `content/talks/map/_index.md` | `layout: "map"` |
-| `content/talks/videos/_index.md` | `layout: "videos"` |
+| Path                                | Front matter          |
+|-------------------------------------|-----------------------|
+| `content/talks/all/_index.md`       | `layout: "all"`       |
+| `content/talks/map/_index.md`       | `layout: "map"`       |
+| `content/talks/videos/_index.md`    | `layout: "videos"`    |
 | `content/talks/templates/_index.md` | `layout: "templates"` |
 
 ### About
@@ -188,13 +190,13 @@ The About layout lists socials, then each `*.md` section (except `index.md`) by 
 
 ## Params reference
 
-| Param | Role |
-|-------|------|
-| `params.author` / `params.avatar` | Default speaker identity (archetypes + fallbacks) |
-| `params.talks.pdf_base_url` | Prefix for talk `pdf:` paths; empty = local URLs |
-| `params.search.enabled` | Pagefind UI (`/search` + Ctrl/Cmd+K); default `true` |
-| `params.navItems.talks` / `about_me` | Dream nav entries (defaults provided) |
-| `params.advanced.customCSS` | Includes theme `css/custom.css` by default |
+| Param                                | Role                                                 |
+|--------------------------------------|------------------------------------------------------|
+| `params.author` / `params.avatar`    | Default speaker identity (archetypes + fallbacks)    |
+| `params.talks.pdf_base_url`          | Prefix for talk `pdf:` paths; empty = local URLs     |
+| `params.search.enabled`              | Pagefind UI (`/search` + Ctrl/Cmd+K); default `true` |
+| `params.navItems.talks` / `about_me` | Dream nav entries (defaults provided)                |
+| `params.advanced.customCSS`          | Includes theme `css/custom.css` by default           |
 
 Taxonomies provided by the theme: `tags`, `categories`, `series`, `cities`, `languages`.
 
@@ -204,7 +206,7 @@ Overlays assume Dream’s structure: `{{ define "main" }}`, `dream-grid` / daisy
 
 ## exampleSite
 
-Fictional demo content (not a real speaker’s talks):
+Fictional demo content (not a real speaker’s talks). For a production site using this theme, see [david.pilato.fr](https://david.pilato.fr/).
 
 ```sh
 cd exampleSite

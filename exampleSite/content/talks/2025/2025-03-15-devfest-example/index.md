@@ -16,7 +16,11 @@ talk-lang: en
 nolastmod: true
 draft: false
 talk: "Search that scales"
-# youtube: "dQw4w9WgXcQ"
+cover: cover.svg
+links:
+  - title: "Talk template"
+    url: "/talks/templates/search-that-scales/"
+    description: "Canonical abstract in EN and FR"
 ---
 
-A fictional talk abstract about building search experiences that scale with your audience.
+Search UI is easy to demo and hard to operate. This fictional session walks through relevance, latency, and the boring bits: synonyms, analyzers, and saying no to “just add a vector”.

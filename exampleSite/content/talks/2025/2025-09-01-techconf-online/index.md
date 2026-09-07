@@ -13,7 +13,10 @@ talk-lang: en
 nolastmod: true
 draft: false
 talk: "Search that scales"
-youtube: "dQw4w9WgXcQ"
+youtube: "aqz-KE-bpKQ"
+cover: cover.svg
 ---
 
-Same fictional talk topic, presented online — used to demo the “Played N times” sidebar and the videos page.
+Same fictional talk topic, presented online — used to demo the “Played N times” sidebar, the 🌎 online flag, and the videos page.
+
+The YouTube id is a public sample video (Big Buck Bunny), not a real conference recording.

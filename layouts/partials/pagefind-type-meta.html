@@ -1,0 +1,14 @@
+{{/* data-pagefind-meta type for result icons */}}
+{{- $type := "other" -}}
+{{- if eq .Section "posts" -}}
+  {{- $type = "post" -}}
+{{- else if eq .Section "about" -}}
+  {{- $type = "about" -}}
+{{- else if strings.Contains .RelPermalink "/talks/templates" -}}
+  {{- $type = "template" -}}
+{{- else if .Params.youtube -}}
+  {{- $type = "video" -}}
+{{- else if eq .Section "talks" -}}
+  {{- $type = "talk" -}}
+{{- end -}}
+<meta data-pagefind-meta="type:{{ $type }}" />

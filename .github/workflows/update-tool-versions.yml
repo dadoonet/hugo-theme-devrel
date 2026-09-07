@@ -1,0 +1,73 @@
+# Bump Hugo / Go / Node pins in .github/versions.env (Dependabot cannot do this).
+name: Update tool versions
+
+on:
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-tool-versions
+  cancel-in-progress: true
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Resolve latest versions
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          HUGO=$(gh api repos/gohugoio/hugo/releases/latest --jq '.tag_name' | sed 's/^v//')
+          GO=$(curl -fsSL 'https://go.dev/VERSION?m=text' | head -1 | sed 's/^go//')
+          NODE=$(curl -fsSL https://nodejs.org/dist/index.json \
+            | jq -r '[.[] | select(.lts != false)][0].version' | sed 's/^v//' | cut -d. -f1)
+          echo "hugo=$HUGO" >> "$GITHUB_OUTPUT"
+          echo "go=$GO" >> "$GITHUB_OUTPUT"
+          echo "node=$NODE" >> "$GITHUB_OUTPUT"
+          echo "Resolved Hugo=$HUGO Go=$GO Node(major)=$NODE"
+
+      - name: Update versions.env
+        env:
+          HUGO: ${{ steps.latest.outputs.hugo }}
+          GO: ${{ steps.latest.outputs.go }}
+          NODE: ${{ steps.latest.outputs.node }}
+        run: |
+          set -euo pipefail
+          {
+            echo '# Single source of truth for CI tool pins (Pages workflow + version-bump workflow).'
+            echo '# Dependabot does not update these strings — see .github/workflows/update-tool-versions.yml'
+            echo "HUGO_VERSION=${HUGO}"
+            echo "GO_VERSION=${GO}"
+            echo "NODE_VERSION=${NODE}"
+          } > .github/versions.env
+          cat .github/versions.env
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          commit-message: "chore(ci): bump tool versions (Hugo ${{ steps.latest.outputs.hugo }}, Go ${{ steps.latest.outputs.go }}, Node ${{ steps.latest.outputs.node }})"
+          title: "chore(ci): bump Hugo ${{ steps.latest.outputs.hugo }} / Go ${{ steps.latest.outputs.go }} / Node ${{ steps.latest.outputs.node }}"
+          body: |
+            Automated bump of CI tool pins in `.github/versions.env`.
+
+            | Tool | Version |
+            |------|---------|
+            | Hugo (extended) | `${{ steps.latest.outputs.hugo }}` |
+            | Go | `${{ steps.latest.outputs.go }}` |
+            | Node (major / LTS line) | `${{ steps.latest.outputs.node }}` |
+
+            Dependabot still owns GitHub Actions, npm (`pagefind`), and Go modules.
+          branch: chore/bump-tool-versions
+          delete-branch: true
+          labels: dependencies,ci

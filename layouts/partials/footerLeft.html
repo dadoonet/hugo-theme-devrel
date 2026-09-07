@@ -1,0 +1,29 @@
+<div>
+  {{ if site.Params.siteStartYear }}
+  <p>
+    © {{ if eq now.Year site.Params.siteStartYear }}{{ now.Year }}{{ else }}{{ site.Params.siteStartYear }} - {{
+    now.Year }}{{ end }} {{ site.Title }}
+  </p>
+  {{ else }}
+  <p>© {{ now.Year }} {{ site.Title }}</p>
+  {{ end }}
+
+  {{ if site.Params.footerBottomText }}
+  <p>{{ site.Params.footerBottomText | safeHTML }}</p>
+  {{ else }}
+  {{ if ne site.Params.search.enabled false }}
+  <p class="text-sm">
+    <span class="text-base-content/60">
+      {{ i18n "searchPoweredBy" }} <a href="https://pagefind.app" target="_blank" rel="noopener">Pagefind</a>. {{ i18n "searchShortcutHint" }}
+    </span>
+  </p>
+  {{ end }}
+  <p class="text-sm">
+    <span class="text-base-content/60">
+      {{ i18n "poweredBy" }} <a class="hover:underline" href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> {{ i18n "with" }}
+      <a class="hover:underline" href="https://github.com/g1eny0ung/hugo-theme-dream" target="_blank" rel="noopener">Dream</a> {{ i18n "and" }}
+      <a class="hover:underline" href="https://github.com/dadoonet/hugo-theme-devrel" target="_blank" rel="noopener">Devrel</a>{{ with (i18n "themes") }} {{ . }}{{ end }}.
+    </span>
+  </p>
+  {{ end }}
+</div>

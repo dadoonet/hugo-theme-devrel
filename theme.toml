@@ -1,0 +1,28 @@
+name = "devrel"
+license = "MIT"
+licenselink = "https://github.com/dadoonet/hugo-theme-devrel/blob/main/LICENSE"
+description = "DevRel overlay for the Dream Hugo theme — talks, posts, map, videos, about"
+homepage = "https://github.com/dadoonet/hugo-theme-devrel"
+demosite = "https://david.pilato.fr"
+
+tags = ["blog", "devrel", "talks", "speaker", "dream", "overlay"]
+features = [
+  "Talks & templates",
+  "Talks map",
+  "Videos",
+  "About page sections",
+  "PDF slides viewer",
+  "Social embeds",
+  "Dream overlay (not a standalone theme)",
+]
+
+min_version = "0.120.0"
+
+[author]
+  name = "David Pilato"
+  homepage = "https://david.pilato.fr"
+
+[original]
+  name = "Dream"
+  homepage = "https://github.com/g1eny0ung/hugo-theme-dream"
+  author = "Yue Yang"

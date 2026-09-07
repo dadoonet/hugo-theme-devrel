@@ -1,0 +1,264 @@
+{{ define "title" }}
+{{- .Title -}}
+{{ end }}
+
+{{ define "main"}}
+
+<style>
+  .talks-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .talks-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .talks-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 1280px) {
+    .talks-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .year-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5rem;
+    height: 5rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%);
+    color: oklch(var(--pc));
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  .year-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, oklch(var(--p) / 0.5) 0%, transparent 100%);
+  }
+  .year-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .decade-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .decade-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: oklch(var(--bc) / 0.5);
+    min-width: 3.5rem;
+    text-align: right;
+    padding-right: 0.5rem;
+  }
+  .year-nav a {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: oklch(var(--b2));
+    color: oklch(var(--bc));
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+  .year-nav a:hover {
+    background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%);
+    color: oklch(var(--pc));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  .year-nav a:hover .year-pill {
+    background: #fff;
+    color: #007bff;
+  }
+  .year-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.4rem;
+    margin-left: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 9999px;
+    background: #007bff;
+    color: #fff;
+    transition: all 0.2s ease;
+  }
+  .back-to-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: oklch(var(--b2));
+    color: oklch(var(--bc) / 0.6);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .back-to-top:hover {
+    background: oklch(var(--p));
+    color: oklch(var(--pc));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  .card-title {
+    position: relative;
+  }
+  .card-title .hidden-link {
+    opacity: 0;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
+</style>
+
+{{/* Get all talks from the parent section */}}
+{{ $talksSection := site.GetPage "/talks" }}
+{{ $allTalks := $talksSection.RegularPages }}
+{{ $now := now }}
+
+<div id="top" class="mt-8 px-4" style="padding-left: 2rem; padding-right: 2rem;">
+  <div style="max-width: 1600px; margin: 0 auto;">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold tracking-tight">
+        <ion-icon name="mic" class="text-primary align-middle"></ion-icon>
+        {{ default "All Talks" .Title }}
+        <span class="year-pill">{{ len $allTalks }}</span>
+      </h1>
+      {{ if .Content }}
+      <p class="text-base-content/70 mt-4 max-w-2xl mx-auto">{{ .Content }}</p>
+      {{ end }}
+
+      {{/* Year navigation grouped by decade */}}
+      {{ $groupLayout := "2006" }}
+      {{ $groups := $allTalks.GroupByDate $groupLayout }}
+      {{/* Get unique decades using scratch */}}
+      {{ $scratch := newScratch }}
+      {{ $scratch.Set "decades" slice }}
+      {{ range $groups }}
+        {{ $decade := div (int .Key) 10 | mul 10 }}
+        {{ $existing := $scratch.Get "decades" }}
+        {{ if not (in $existing $decade) }}
+          {{ $scratch.Add "decades" (slice $decade) }}
+        {{ end }}
+      {{ end }}
+      {{ $decades := sort ($scratch.Get "decades") "value" "desc" }}
+      <nav class="year-nav" aria-label="Navigation par année">
+        {{ range $decades }}
+          {{ $currentDecade := . }}
+          <div class="decade-row">
+            {{ range $groups }}
+              {{ $yearDecade := div (int .Key) 10 | mul 10 }}
+              {{ if eq $yearDecade $currentDecade }}
+              <a href="#year-{{ .Key }}">{{ .Key }}<span class="year-pill">{{ len .Pages }}</span></a>
+              {{ end }}
+            {{ end }}
+          </div>
+        {{ end }}
+      </nav>
+    </div>
+
+    {{ range $groups }}
+    <section id="year-{{ .Key }}" class="mb-16 scroll-mt-24">
+      <div class="flex items-center gap-4 mb-8">
+        <div class="year-badge">
+          <span class="text-2xl font-black">{{ .Key }}</span>
+          <a href="#top" class="back-to-top" title="Back to top">
+            <ion-icon name="chevron-up"></ion-icon>
+          </a>
+        </div>
+        <div class="year-line"></div>
+        <span class="badge badge-lg badge-ghost year-pill">{{ len .Pages }} talks</span>
+      </div>
+
+      <div class="talks-grid">
+        {{ range .Pages.ByDate.Reverse }}
+        <article class="card bg-base-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+          {{ $cover := "" }}
+          {{ if .Params.cover }}
+            {{ $cover = .Resources.GetMatch .Params.cover }}
+          {{ else }}
+            {{ $cover = .Resources.GetMatch "cover.*" }}
+          {{ end }}
+          {{ if $cover }}
+          <figure class="relative overflow-hidden h-40">
+            {{ if lt .Date $now }}
+            <a href="{{ .RelPermalink }}">
+            {{ end }}
+              <img src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <div class="absolute inset-0 bg-gradient-to-t from-base-200/80 to-transparent"></div>
+            {{ if lt .Date $now }}
+            </a>
+            {{ end }}
+          </figure>
+          {{ end }}
+          <div class="card-body p-4">
+            <div class="flex flex-wrap gap-2 mb-2">
+              {{ partial "countryFlag.html" .Params.conference }}
+              {{ partial "langLabel.html" . }}
+              {{ partial "slidesLabel.html" . }}
+              {{ partial "videoLabel.html" . }}
+
+              {{ if gt .Date $now }}
+              <span class="badge badge-primary badge-sm gap-1">
+                <ion-icon name="alarm" class="text-xs"></ion-icon>
+                Upcoming
+              </span>
+              {{ end }}
+
+            </div>
+            <h2 class="card-title text-base leading-tight line-clamp-2 min-h-[2.5rem]">
+              {{ if gt .Date $now }}
+              {{ .Title }}
+              <a href="{{ .RelPermalink }}" class="hidden-link" title="Voir les détails">
+                <ion-icon name="open-outline"></ion-icon>
+              </a>
+              {{ else }}
+              <a href="{{ .RelPermalink }}" class="hover:text-primary transition-colors">{{ .Title }}</a>
+              {{ end }}
+            </h2>
+            {{ if .Description }}
+            <p class="text-xs text-base-content/60 line-clamp-2 mt-1">{{ .Description }}</p>
+            {{ end }}
+            <div class="mt-auto pt-3 border-t border-base-content/10">
+              <div class="flex items-center justify-between text-xs text-base-content/50">
+                <a href="{{ .Params.conference.url }}" target="_blank">
+                <span class="truncate max-w-[60%]" title="{{ .Params.conference.name }}">{{ .Params.conference.name }}</span>
+                </a>
+                <span title="{{ .Date | time.Format "January 2, 2006" }}">{{ .Date | time.Format "Jan 2" }}</span>
+              </div>
+            </div>
+          </div>
+        </article>
+        {{ end }}
+      </div>
+
+      {{/* Add map for this year */}}
+      {{ $year := .Key }}
+      {{ $yearStart := printf "%s-01-01" $year }}
+      {{ $yearEnd := printf "%s-12-31" $year }}
+      {{ $mapId := printf "map-year-%s" $year }}
+      <div class="mt-8">
+        {{ partial "talks-map.html" (dict "startDate" $yearStart "endDate" $yearEnd "mapId" $mapId) }}
+      </div>
+    </section>
+    {{ end }}
+  </div>
+</div>
+
+{{ end }}
+

@@ -1,0 +1,136 @@
+/* Custom CSS for badge-error (YouTube-inspired red) */
+.badge-error {
+  --badge-color: oklch(55% 0.2 25);
+  --badge-fg: oklch(100% 0 0);
+}
+
+/* Custom CSS for badge-info (blue - matching conference highlight) */
+.badge-info {
+  --badge-color: rgb(59, 130, 246);
+  --badge-fg: rgb(255, 255, 255);
+  background-color: rgb(59, 130, 246) !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+.linkedin-embed {
+  max-width: 550px;
+  margin: 1rem auto;
+}
+
+.linkedin-embed iframe {
+  width: 100%;
+  min-height: 600px;
+  border: 0;
+}
+
+/* Pagefind Component UI — modal B′ */
+.devrel-pf-root {
+  --pf-font: inherit;
+  --pf-border-radius: 0.5rem;
+  --pf-modal-backdrop: rgba(0, 0, 0, 0.55);
+  /* Closer to vertical center than default 10dvh */
+  --pf-modal-top: max(1.5rem, calc((100dvh - min(80dvh, 800px)) / 2));
+  --pf-modal-max-width: 640px;
+  --pf-image-width: 72px;
+  --pf-image-height: 54px;
+}
+
+.devrel-pf-page {
+  --pf-font: inherit;
+  --pf-border-radius: 0.5rem;
+  --pf-image-width: 72px;
+  --pf-image-height: 54px;
+}
+
+/* Same-line search + filter (outside Pagefind all:initial hosts) */
+.devrel-pf-modal-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.devrel-pf-modal-toolbar pagefind-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.devrel-pf-filter-wrap {
+  flex: 0 0 auto;
+}
+
+.devrel-pf-filter-wrap[hidden] {
+  display: none !important;
+}
+
+.devrel-pf-filters {
+  margin-bottom: 0.75rem;
+}
+
+/* Result row: cover + type icon (custom template content escapes all:initial) */
+.devrel-pf-result {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.devrel-pf-result .pf-result-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* Solid 24×24 glyphs + explicit colors (currentColor+opacity vanished in dark modal). */
+.devrel-pf-type {
+  display: inline-block !important;
+  flex: 0 0 auto;
+  width: 1.125rem;
+  height: 1.125rem;
+  background-color: #404040 !important;
+  opacity: 1 !important;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+[data-pf-theme="dark"] .devrel-pf-type,
+html.dark .devrel-pf-type,
+html.dark [data-pf-theme] .devrel-pf-type {
+  background-color: #e5e5e5 !important;
+}
+
+/* Document */
+.devrel-pf-type[data-type="post"] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5L13 3.5zM8 12h8v1.75H8V12zm0 3.5h8V17.25H8V15.5zm0 3.5h5V20.75H8V19z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5L13 3.5zM8 12h8v1.75H8V12zm0 3.5h8V17.25H8V15.5zm0 3.5h5V20.75H8V19z'/%3E%3C/svg%3E");
+}
+
+/* Capsule microphone (not headphones) */
+.devrel-pf-type[data-type="talk"] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 1a3.75 3.75 0 0 0-3.75 3.75v6.5a3.75 3.75 0 1 0 7.5 0v-6.5A3.75 3.75 0 0 0 12 1zm-7.25 10a1 1 0 0 0-1 1 8.25 8.25 0 0 0 7.25 8.18V22H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-1.82A8.25 8.25 0 0 0 20.25 12a1 1 0 1 0-2 0 6.25 6.25 0 0 1-12.5 0 1 1 0 0 0-1-1z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 1a3.75 3.75 0 0 0-3.75 3.75v6.5a3.75 3.75 0 1 0 7.5 0v-6.5A3.75 3.75 0 0 0 12 1zm-7.25 10a1 1 0 0 0-1 1 8.25 8.25 0 0 0 7.25 8.18V22H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-1.82A8.25 8.25 0 0 0 20.25 12a1 1 0 1 0-2 0 6.25 6.25 0 0 1-12.5 0 1 1 0 0 0-1-1z'/%3E%3C/svg%3E");
+}
+
+/* Play / video */
+.devrel-pf-type[data-type="video"] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 5.75A2.75 2.75 0 0 1 5.75 3h12.5A2.75 2.75 0 0 1 21 5.75v12.5A2.75 2.75 0 0 1 18.25 21H5.75A2.75 2.75 0 0 1 3 18.25V5.75zm6.2 2.4v7.7c0 .55.6.9 1.08.62l6.4-3.85a.75.75 0 0 0 0-1.28l-6.4-3.85A.75.75 0 0 0 9.2 8.15z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 5.75A2.75 2.75 0 0 1 5.75 3h12.5A2.75 2.75 0 0 1 21 5.75v12.5A2.75 2.75 0 0 1 18.25 21H5.75A2.75 2.75 0 0 1 3 18.25V5.75zm6.2 2.4v7.7c0 .55.6.9 1.08.62l6.4-3.85a.75.75 0 0 0 0-1.28l-6.4-3.85A.75.75 0 0 0 9.2 8.15z'/%3E%3C/svg%3E");
+}
+
+/* Stacked layers (distinct from post document) */
+.devrel-pf-type[data-type="template"] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2.2 1.8 7.5 12 12.8 22.2 7.5 12 2.2zm-8.7 9.1 8.7 4.5 8.7-4.5 1.8.9-10.5 5.45L1.5 12.2l1.8-.9zm0 4.6 8.7 4.5 8.7-4.5 1.8.9L12 22.65 1.5 16.8l1.8-.9z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2.2 1.8 7.5 12 12.8 22.2 7.5 12 2.2zm-8.7 9.1 8.7 4.5 8.7-4.5 1.8.9-10.5 5.45L1.5 12.2l1.8-.9zm0 4.6 8.7 4.5 8.7-4.5 1.8.9L12 22.65 1.5 16.8l1.8-.9z'/%3E%3C/svg%3E");
+}
+
+/* Info */
+.devrel-pf-type[data-type="about"],
+.devrel-pf-type[data-type="other"] {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4.25a1.35 1.35 0 1 1 0 2.7 1.35 1.35 0 0 1 0-2.7zM10.75 10.5h1.8v6.25H10.75V10.5zm2.7 0H15v1.5h-.7v4.75h-1.85V12h.75v-1.5z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4.25a1.35 1.35 0 1 1 0 2.7 1.35 1.35 0 0 1 0-2.7zM10.75 10.5h1.8v6.25H10.75V10.5zm2.7 0H15v1.5h-.7v4.75h-1.85V12h.75v-1.5z'/%3E%3C/svg%3E");
+}

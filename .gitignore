@@ -1,0 +1,16 @@
+public/
+resources/_gen/
+.hugo_build.lock
+node_modules/
+.DS_Store
+exampleSite/public/
+exampleSite/resources/
+exampleSite/.hugo_build.lock
+exampleSite/node_modules/
+
+# Agent working notes (specs/plans), not theme docs
+docs/
+
+# exampleSite build output
+exampleSite/public/
+exampleSite/resources/

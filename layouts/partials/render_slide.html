@@ -1,0 +1,235 @@
+{{- /*
+Renders an embedded PDF file.
+
+@param {string} [pdf] The PDF file.
+
+@returns {template.HTML}
+
+@example {{< render_slide $pdf >}}
+*/}}
+{{ $script := resources.Get "js/pdf.mjs" | fingerprint -}}
+<script type="module" src="{{ $script.RelPermalink }}" {{ printf "integrity=%q" $script.Data.Integrity | safeHTMLAttr }}></script>
+
+<script type="module">
+var pdfDoc = null,
+    pageNum = 1,
+    pageRendering = false,
+    pageNumPending = null,
+    canvas = document.getElementById('talks-pdf'),
+    ctx = canvas.getContext('2d');
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.scale(2, 2);
+    ctx.fillText("Loading...", canvas.width/4, canvas.height/4);
+
+/**
+ * Calculate optimal scale to fit the viewport
+ * @param page PDF page object
+ */
+function calculateOptimalScale(page) {
+  // Get available height: viewport height minus space for header, title, controls
+  var availableHeight = window.innerHeight - 280;
+  
+  // Get available width from the pdf-container which has proper CSS constraints
+  var pdfContainer = document.getElementById('pdf-container');
+  var availableWidth = pdfContainer ? pdfContainer.clientWidth : (window.innerWidth - 64);
+  
+  // On smaller screens, be more conservative with width
+  if (window.innerWidth < 1024) {
+    availableWidth = Math.min(availableWidth, window.innerWidth - 32);
+  }
+  
+  // Get the page dimensions at scale 1
+  var viewport = page.getViewport({scale: 1});
+  
+  // Calculate scale to fit both dimensions
+  var scaleWidth = availableWidth / viewport.width;
+  var scaleHeight = availableHeight / viewport.height;
+  
+  // Use the smaller scale to ensure it fits within the viewport
+  // Allow scaling down for wide PDFs, with a minimum of 0.5 for readability
+  return Math.max(0.5, Math.min(scaleWidth, scaleHeight));
+}
+
+/**
+ * Sync content width with canvas width
+ */
+function syncContentWidth() {
+  var contentContainer = document.getElementById('talk-content-container');
+  if (contentContainer && canvas.width > 0) {
+    contentContainer.style.maxWidth = canvas.width + 'px';
+  }
+}
+
+/**
+ * Get page info from document, resize canvas accordingly, and render page.
+ * @param num Page number.
+ */
+function renderPage(num) {
+  pageRendering = true;
+  // Using promise to fetch the page
+  pdfDoc.getPage(num).then(function(page) {
+    var scale = calculateOptimalScale(page);
+    var viewport = page.getViewport({scale: scale});
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    // Render PDF page into canvas context
+    var renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+    var renderTask = page.render(renderContext);
+
+    // Wait for rendering to finish
+    renderTask.promise.then(function() {
+      pageRendering = false;
+      syncContentWidth();
+      if (pageNumPending !== null) {
+        // New page rendering is pending
+        renderPage(pageNumPending);
+        pageNumPending = null;
+      }
+    });
+  });
+
+  // Update page counters
+  document.getElementById('page_num').textContent = num;
+}
+
+/**
+ * If another page rendering in progress, waits until the rendering is
+ * finished. Otherwise, executes rendering immediately.
+ */
+function queueRenderPage(num) {
+  if (pageRendering) {
+    pageNumPending = num;
+  } else {
+    renderPage(num);
+  }
+}
+
+/**
+ * Displays first page.
+ */
+function onFirstPage() {
+  if (pageNum === 1) {
+    return;
+  }
+  pageNum = 1;
+  queueRenderPage(pageNum);
+}
+document.getElementById('first').addEventListener('click', onFirstPage);
+
+/**
+ * Displays previous page.
+ */
+function onPrevPage() {
+  if (pageNum <= 1) {
+    return;
+  }
+  pageNum--;
+  queueRenderPage(pageNum);
+}
+document.getElementById('prev').addEventListener('click', onPrevPage);
+
+/**
+ * Displays next page.
+ */
+function onNextPage() {
+  if (pageNum >= pdfDoc.numPages) {
+    return;
+  }
+  pageNum++;
+  queueRenderPage(pageNum);
+}
+document.getElementById('next').addEventListener('click', onNextPage);
+document.getElementById('talks-pdf').addEventListener('click', onNextPage);
+
+/**
+ * Displays last page.
+ */
+function onLastPage() {
+  if (pageNum === pdfDoc.numPages) {
+    return;
+  }
+  pageNum = pdfDoc.numPages;
+  queueRenderPage(pageNum);
+}
+document.getElementById('last').addEventListener('click', onLastPage);
+
+/**
+ * Add keyboard navigation.
+ */
+document.addEventListener("keydown", function(event) {
+  const key = event.key;
+  switch (key) {
+    case "ArrowLeft":
+    case "ArrowUp":
+      event.preventDefault();
+      onPrevPage();
+      break;
+    case "ArrowRight":
+    case "ArrowDown":
+      event.preventDefault();
+      onNextPage();
+      break;
+    case "Home":
+      event.preventDefault();
+      onFirstPage();
+      break;
+    case "End":
+      event.preventDefault();
+      onLastPage();
+      break;
+  }
+});
+
+// If absolute URL from the remote server is provided, configure the CORS header on that server.
+var url = '{{ .pdf_url }}';
+
+// The workerSrc property shall be specified.
+{{ $script := resources.Get "js/pdf.worker.mjs" | fingerprint -}}
+var { pdfjsLib } = globalThis;
+if(pdfjsLib === undefined){ // Fallback for older browsers and a Safari bug
+  (function() { // Polyfill
+    if (typeof globalThis === 'object') return;
+    Object.defineProperty(Object.prototype, '__magic__', {
+      get: function() {
+        return this;
+      },
+      configurable: true
+    });
+    __magic__.globalThis = __magic__;
+    delete Object.prototype.__magic__;
+  }());
+  var { pdfjsLib } = globalThis;
+  if(pdfjsLib === undefined){
+    var { pdfjsLib } = window;
+    if(pdfjsLib === undefined){
+      window.location.reload(); // This is an act of desperation
+    }
+  }
+}
+pdfjsLib.GlobalWorkerOptions.workerSrc = '{{ $script.RelPermalink }}';
+
+// Asynchronously downloads PDF.
+pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+  pdfDoc = pdfDoc_;
+  document.getElementById('page_count').textContent = pdfDoc.numPages;
+
+  // Initial/first page rendering
+  renderPage(pageNum);
+});
+
+// Re-render on window resize with debounce
+var resizeTimeout;
+window.addEventListener('resize', function() {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(function() {
+    if (pdfDoc) {
+      queueRenderPage(pageNum);
+    }
+  }, 250);
+});
+</script>

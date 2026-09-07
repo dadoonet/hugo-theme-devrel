@@ -1,0 +1,81 @@
+{{- /*
+Renders a PDF file.
+
+@param {dict} ctx The context.
+@param {string} pdf_url The relative PDF URL path (e.g., "2025/talk.pdf") or absolute URL
+
+When site.Params.talks.pdf_base_url is set, it is prepended to relative paths.
+When empty, relative paths are resolved against the site root (local / page-bundle PDFs).
+
+@returns {template.HTML}
+*/}}
+{{ $pdf_base_url := "" }}
+{{ with site.Params.talks }}
+  {{ with .pdf_base_url }}
+    {{ $pdf_base_url = . }}
+  {{ end }}
+{{ end }}
+{{ $full_pdf_url := .pdf_url }}
+{{ if and $pdf_base_url (not (or (hasPrefix .pdf_url "http://") (hasPrefix .pdf_url "https://") (hasPrefix .pdf_url "/"))) }}
+  {{ $full_pdf_url = printf "%s%s" $pdf_base_url .pdf_url }}
+{{ else if and (not (or (hasPrefix .pdf_url "http://") (hasPrefix .pdf_url "https://"))) (hasPrefix .pdf_url "/") }}
+  {{ $full_pdf_url = .pdf_url | relURL }}
+{{ else if not (or (hasPrefix .pdf_url "http://") (hasPrefix .pdf_url "https://")) }}
+  {{ if $pdf_base_url }}
+    {{ $full_pdf_url = printf "%s%s" $pdf_base_url .pdf_url }}
+  {{ else }}
+    {{ $full_pdf_url = .pdf_url | relURL }}
+  {{ end }}
+{{ end }}
+<style>
+  .talks-controls .icon,
+  .talks-controls svg {
+    width: 1rem;
+    height: 1rem;
+  }
+</style>
+<div class="post-content">
+  <div class="flex flex-col gap-2 py-1">
+    <!-- PDF slides - Size calculated by JavaScript to fit viewport -->
+    <div id="pdf-container" class="w-full flex justify-center overflow-hidden">
+      <canvas class="cursor-pointer rounded-lg shadow-md" style="max-width: 100%;" id="talks-pdf"></canvas>
+      <noscript><p class="text-center text-sm text-base-content/70 mt-2">{{ i18n "jsDisabledSlides" }} <a href="{{ $full_pdf_url }}" class="link link-primary" download>{{ i18n "downloadPdfDirectly" }}</a>.</p></noscript>
+    </div>
+
+    <!-- Controls bar below the canvas -->
+    <div class="talks-controls flex flex-wrap items-center justify-between gap-2 text-sm">
+      <!-- Left: Navigation controls -->
+      <div class="flex items-center gap-3">
+        <a href="#" onclick="return false;" id="first" class="flex items-center gap-1 hover:text-primary transition-colors" title="{{ i18n "pdfFirst" }}">
+          <span class="w-4 h-4">{{ partial "icon.html" (dict "ctx" .ctx "name" "skip-back") }}</span>
+          <span class="hidden sm:inline">{{ i18n "pdfFirst" }}</span>
+        </a>
+        <a href="#" onclick="return false;" id="prev" class="flex items-center gap-1 hover:text-primary transition-colors" title="{{ i18n "pdfPrevious" }}">
+          <span class="w-4 h-4">{{ partial "icon.html" (dict "ctx" .ctx "name" "chevrons-left") }}</span>
+          <span class="hidden sm:inline">{{ i18n "pdfPrevious" }}</span>
+        </a>
+        <span class="text-base-content/60 tabular-nums">
+          <ins id="page_num" class="no-underline"></ins>&#8239;/&#8239;<ins id="page_count" class="no-underline"></ins>
+        </span>
+        <a href="#" onclick="return false;" id="next" class="flex items-center gap-1 hover:text-primary transition-colors" title="{{ i18n "pdfNext" }}">
+          <span class="hidden sm:inline">{{ i18n "pdfNext" }}</span>
+          <span class="w-4 h-4">{{ partial "icon.html" (dict "ctx" .ctx "name" "chevrons-right") }}</span>
+        </a>
+        <a href="#" onclick="return false;" id="last" class="flex items-center gap-1 hover:text-primary transition-colors" title="{{ i18n "pdfLast" }}">
+          <span class="hidden sm:inline">{{ i18n "pdfLast" }}</span>
+          <span class="w-4 h-4">{{ partial "icon.html" (dict "ctx" .ctx "name" "skip-forward") }}</span>
+        </a>
+      </div>
+
+      <!-- Center: Download -->
+      <div class="flex items-center">
+        <a href="{{ $full_pdf_url }}" title="{{ i18n "downloadPdf" }}" download class="flex items-center gap-1 hover:text-primary transition-colors">
+          <span class="w-4 h-4 mr-1">{{ partial "icon.html" (dict "ctx" .ctx "name" "download-cloud") }}</span>
+          <span class="text-base-content/60">PDF</span>
+        </a>
+      </div>
+    </div>
+
+    {{ partial "render_slide.html" (dict "pdf_url" $full_pdf_url) }}
+  </div>
+</div>

@@ -1,0 +1,38 @@
+{{/* Emit Pagefind image metadata for search results (absolute URLs). */}}
+{{- $src := "" -}}
+{{- $coverParam := or .Params.cover .Params.Cover -}}
+{{- if $coverParam -}}
+  {{- with .Resources.GetMatch $coverParam -}}
+    {{- $src = .Permalink -}}
+  {{- else -}}
+    {{- if or (hasPrefix $coverParam "http://") (hasPrefix $coverParam "https://") (hasPrefix $coverParam "//") -}}
+      {{- $src = $coverParam -}}
+    {{- else -}}
+      {{- $src = ($coverParam | absURL) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $src -}}
+  {{- with .Resources.GetMatch "cover.*" -}}
+    {{- $src = .Permalink -}}
+  {{- end -}}
+{{- end -}}
+{{- if and (not $src) .Params.youtube -}}
+  {{- $src = printf "https://img.youtube.com/vi/%s/hqdefault.jpg" .Params.youtube -}}
+{{- end -}}
+{{- if and (not $src) (not site.Params.noDefaultSummaryCover) -}}
+  {{- $n := mod (len .RelPermalink) 4 -}}
+  {{- with resources.Get (printf "images/default%d.jpg" $n) -}}
+    {{- $src = .Permalink -}}
+  {{- end -}}
+{{- end -}}
+{{- if $src -}}
+<img
+  src="{{ $src }}"
+  alt="{{ .Title }}"
+  data-pagefind-meta="image[src], image_alt[alt]"
+  hidden
+  width="1"
+  height="1"
+/>
+{{- end -}}

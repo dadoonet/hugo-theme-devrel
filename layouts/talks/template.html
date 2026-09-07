@@ -1,0 +1,677 @@
+{{ define "title" }}{{ with .Params.versions }}{{ (index . 0).title }}{{ else }}{{ $.Title }}{{ end }}{{ end }}
+
+{{ define "css" }}
+
+{{ if site.Params.customSyntaxHighlighting }}
+<link rel="stylesheet" data-custom-syntax-highlighting />
+<style>
+  .chroma {
+    padding: 1em;
+    background-color: var(--dream-pre-bg, #f5f5f5);
+    border-radius: .5em;
+    overflow: auto;
+  }
+
+  html.dark .chroma {
+    background-color: var(--dream-pre-bg-dark, #262626);
+  }
+</style>
+{{ else }}
+<style>
+  pre {
+    padding: 1em;
+    overflow: auto;
+  }
+</style>
+{{ end }}
+
+<style>
+  .talks-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .talks-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .talks-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 1280px) {
+    .talks-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .year-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%);
+    color: oklch(var(--pc));
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  .year-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, oklch(var(--p) / 0.5) 0%, transparent 100%);
+  }
+  .year-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.4rem;
+    margin-left: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 9999px;
+    background: oklch(var(--p));
+    color: oklch(var(--pc));
+    transition: all 0.2s ease;
+  }
+
+  /* W3Schools-style tab bar */
+  .tab-bar {
+    display: flex;
+    background-color: #616161;
+    margin-bottom: 1rem;
+  }
+  .tab-bar .tab-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background-color: inherit;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 0.95rem;
+  }
+  .tab-bar .tab-button:hover {
+    background-color: #757575;
+  }
+  .tab-bar .tab-button.active {
+    background-color: #f44336;
+  }
+  html.dark .tab-bar {
+    background-color: #424242;
+  }
+  html.dark .tab-bar .tab-button:hover {
+    background-color: #616161;
+  }
+  html.dark .tab-bar .tab-button.active {
+    background-color: #e53935;
+  }
+
+  /* Sub-tabs (secondary level) */
+  .sub-tab-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid oklch(var(--bc) / 0.1);
+  }
+  .sub-tab-bar .sub-tab-button {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    color: oklch(var(--bc) / 0.6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .sub-tab-bar .sub-tab-button:hover {
+    color: oklch(var(--bc));
+  }
+  .sub-tab-bar .sub-tab-button.active {
+    color: oklch(var(--p));
+    border-bottom-color: oklch(var(--p));
+  }
+
+  /* Code block with copy button */
+  .code-block {
+    position: relative;
+    background-color: #f5f5f5;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  html.dark .code-block {
+    background-color: #2d2d2d;
+  }
+  .code-block pre {
+    margin: 0;
+    padding: 1rem;
+    padding-right: 3rem;
+    overflow-x: auto;
+    background: transparent;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .code-block code {
+    font-family: 'SF Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #333;
+  }
+  html.dark .code-block code {
+    color: #e0e0e0;
+  }
+  .copy-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.4rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .copy-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+  }
+  html.dark .copy-button {
+    color: #999;
+  }
+  html.dark .copy-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .copy-button.copied {
+    color: #22c55e;
+  }
+  .copy-button ion-icon {
+    font-size: 1.25rem;
+  }
+</style>
+
+{{ end }}
+
+{{ define "main" }}
+{{/* Get all talks with this template (excluding template pages themselves) */}}
+{{ $talkName := .Params.talk }}
+{{ $relatedTalks := slice }}
+{{ $now := now }}
+{{ range where (where site.RegularPages "Section" "talks") ".Params.talk" $talkName }}
+  {{/* Exclude template pages (they have layout: "template") */}}
+  {{ if ne .Params.layout "template" }}
+    {{ $relatedTalks = $relatedTalks | append . }}
+  {{ end }}
+{{ end }}
+{{ $sortedTalks := sort $relatedTalks ".Date" "desc" }}
+{{ $totalPlayed := len $sortedTalks }}
+
+{{/* Build sorted templates list for prev/next navigation */}}
+{{ $currentPermalink := .Permalink }}
+{{ $templatesSection := site.GetPage "/talks/templates" }}
+{{ $allTemplates := $templatesSection.Pages }}
+{{ $allTalksForNav := where (where site.RegularPages "Section" "talks") ".File.Dir" "not in" (slice "talks/templates/") }}
+
+{{ $templatesWithDates := slice }}
+{{ range $allTemplates }}
+  {{ $tName := .Params.talk }}
+  {{ $latestDate := time "1970-01-01" }}
+  {{ range where $allTalksForNav ".Params.talk" $tName }}
+    {{ if gt .Date $latestDate }}
+      {{ $latestDate = .Date }}
+    {{ end }}
+  {{ end }}
+  {{ $templatesWithDates = $templatesWithDates | append (dict "template" . "latestDate" $latestDate) }}
+{{ end }}
+{{ $sortedTemplatesNav := sort $templatesWithDates "latestDate" "desc" }}
+
+{{/* Find prev/next templates */}}
+{{ $prevTemplate := false }}
+{{ $nextTemplate := false }}
+{{ $foundCurrent := false }}
+{{ range $idx, $item := $sortedTemplatesNav }}
+  {{ if eq $item.template.Permalink $currentPermalink }}
+    {{ $foundCurrent = true }}
+  {{ else if not $foundCurrent }}
+    {{ $prevTemplate = $item.template }}
+  {{ else if and $foundCurrent (not $nextTemplate) }}
+    {{ $nextTemplate = $item.template }}
+  {{ end }}
+{{ end }}
+
+{{/* Get last public appearance (most recent past talk) */}}
+{{ $lastPublicTalk := false }}
+{{ range $sortedTalks }}
+  {{ if and (not $lastPublicTalk) (le .Date $now) }}
+    {{ $lastPublicTalk = . }}
+  {{ end }}
+{{ end }}
+
+{{/* Get first public appearance (oldest talk) */}}
+{{ $firstPublicTalk := false }}
+{{ $reverseSortedTalks := sort $relatedTalks ".Date" "asc" }}
+{{ range $reverseSortedTalks }}
+  {{ if not $firstPublicTalk }}
+    {{ $firstPublicTalk = . }}
+  {{ end }}
+{{ end }}
+
+{{/* Count videos */}}
+{{ $videoCount := 0 }}
+{{ range $sortedTalks }}
+  {{ if .Params.youtube }}
+    {{ $videoCount = add $videoCount 1 }}
+  {{ end }}
+{{ end }}
+
+{{/* Determine if we have versions */}}
+{{ $hasVersions := .Params.versions }}
+{{ $firstVersion := index .Params.versions 0 }}
+
+{{/* Main content - same layout as single talk page */}}
+<div class="flex flex-col lg:grid lg:grid-cols-4 gap-4 mt-4 px-4">
+  {{/* Left column - empty */}}
+  <div class="hidden lg:block"></div>
+
+  {{/* Main content - spans 2 columns */}}
+  <div class="lg:col-span-2 min-w-0">
+    <article class="mx-auto prose prose-quoteless dark:prose-invert max-w-none lg:max-w-prose" itemscope itemtype="http://schema.org/Article" data-pagefind-body data-pagefind-filter="section:templates">
+      {{ template "_internal/schema.html" . }}
+      {{ partial "pagefind-cover-meta.html" . }}
+      {{ partial "pagefind-type-meta.html" . }}
+      {{ partial "pagefind-sort-meta.html" . }}
+
+      {{/* Back to templates link */}}
+      <div class="not-prose mb-4" data-pagefind-ignore>
+        <a href="{{ "talks/templates/" | relURL }}" class="inline-flex items-center gap-1 text-sm text-base-content/60 hover:text-primary transition-colors">
+          <ion-icon name="arrow-back" class="text-lg"></ion-icon>
+          Back to Templates
+        </a>
+      </div>
+
+      {{ if $hasVersions }}
+      {{/* Dynamic versions tabs */}}
+      <div x-data="{ activeVersion: 0, activeSubTab: 'talk' }">
+        {{/* Title - first version by default */}}
+        <header class="not-prose">
+          <h1 itemprop="headline" class="text-3xl font-bold mb-1" data-pagefind-meta="title">{{ $firstVersion.title }}</h1>
+        </header>
+
+        {{/* Stats - always in English */}}
+        <div class="flex flex-row flex-wrap gap-2 my-4 not-prose">
+          <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
+            <ion-icon name="mic" class="text-primary"></ion-icon>
+            <span class="text-base-content/70">{{ i18n "played" }}</span>
+            <span class="font-bold text-primary">{{ $totalPlayed }}</span>
+            <span class="text-base-content/50 text-xs">{{ i18n "times" }}</span>
+          </div>
+          {{ if gt $videoCount 0 }}
+          <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
+            <ion-icon name="logo-youtube" class="text-error"></ion-icon>
+            <span class="text-base-content/70">{{ i18n "videos" }}</span>
+            <span class="font-bold text-error">{{ $videoCount }}</span>
+          </div>
+          {{ end }}
+          {{ if $firstPublicTalk }}
+          <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
+            <ion-icon name="calendar" class="text-secondary"></ion-icon>
+            <span class="text-base-content/70">First</span>
+            <span class="font-bold text-secondary">{{ $firstPublicTalk.Date | time.Format "Jan 2006" }}</span>
+          </div>
+          {{ end }}
+          {{ if $lastPublicTalk }}
+          <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
+            <ion-icon name="time" class="text-accent"></ion-icon>
+            <span class="text-base-content/70">Last</span>
+            <span class="font-bold text-accent">{{ $lastPublicTalk.Date | time.Format "Jan 2006" }}</span>
+          </div>
+          {{ end }}
+        </div>
+
+        {{/* Cover image - auto-detect cover.* file */}}
+        {{ $cover := "" }}
+        {{ if $.Params.cover }}
+          {{ $cover = $.Resources.GetMatch $.Params.cover }}
+        {{ else }}
+          {{ $cover = $.Resources.GetMatch "cover.*" }}
+        {{ end }}
+        {{ if $cover }}
+        <figure class="my-4">
+          <img class="rounded-lg shadow-lg w-full" src="{{ $cover.RelPermalink }}" alt="{{ $firstVersion.title }}" />
+          {{ with $.Params.covercaption }}
+            <figcaption class="text-sm italic text-center mt-2">{{ . }}</figcaption>
+          {{ end }}
+        </figure>
+        {{ end }}
+
+        <div class="divider"></div>
+
+        {{/* Main tabs - Version labels (EN, FR, etc.) */}}
+        <div class="tab-bar not-prose" style="flex-wrap: wrap;">
+          {{ range $index, $version := .Params.versions }}
+          <button 
+            class="tab-button"
+            :class="activeVersion === {{ $index }} ? 'active' : ''"
+            @click="activeVersion = {{ $index }}"
+          >
+            <span class="fi fi-{{ $version.flag }}"></span>
+            {{ $version.label }}
+          </button>
+          {{ end }}
+        </div>
+
+        {{/* Sub-tabs - Talk / Raw */}}
+        <div class="sub-tab-bar not-prose">
+          <button 
+            class="sub-tab-button"
+            :class="activeSubTab === 'talk' ? 'active' : ''"
+            @click="activeSubTab = 'talk'"
+          >
+            <ion-icon name="chatbubble-outline" class="align-middle mr-1"></ion-icon>
+            Talk
+          </button>
+          <button 
+            class="sub-tab-button"
+            :class="activeSubTab === 'raw' ? 'active' : ''"
+            @click="activeSubTab = 'raw'"
+          >
+            <ion-icon name="code-slash-outline" class="align-middle mr-1"></ion-icon>
+            Raw
+          </button>
+        </div>
+
+        {{/* Dynamic content for each version */}}
+        {{ range $index, $version := .Params.versions }}
+        {{/* Talk view (formatted abstract) */}}
+        <div x-show="activeVersion === {{ $index }} && activeSubTab === 'talk'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+          <h2>{{ $version.title }}</h2>
+          {{ $version.abstract | markdownify }}
+        </div>
+
+        {{/* Raw view - for CFP copy/paste */}}
+        <div x-show="activeVersion === {{ $index }} && activeSubTab === 'raw'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+          <h3>Title</h3>
+          <div class="code-block">
+            <button class="copy-button" onclick="copyToClipboard(this)" aria-label="Copy to clipboard">
+              <ion-icon name="copy-outline"></ion-icon>
+            </button>
+            <pre><code>{{ $version.title }}</code></pre>
+          </div>
+          <h3 class="mt-4">Abstract</h3>
+          <div class="code-block">
+            <button class="copy-button" onclick="copyToClipboard(this)" aria-label="Copy to clipboard">
+              <ion-icon name="copy-outline"></ion-icon>
+            </button>
+            <pre><code>{{ $version.abstract }}</code></pre>
+          </div>
+        </div>
+        {{ end }}
+      </div>
+      {{ else }}
+      {{/* Single language version (backward compatible) */}}
+      <header>
+        <h1 itemprop="headline" style="margin-bottom: 0.25rem;" data-pagefind-meta="title">{{ .Title }}</h1>
+      </header>
+
+      {{/* Stats (compact) - at top */}}
+      <div class="flex flex-row flex-wrap gap-2 my-4 not-prose">
+        <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
+          <ion-icon name="mic" class="text-primary"></ion-icon>
+          <span class="text-base-content/70">{{ i18n "played" }}</span>
+          <span class="font-bold text-primary">{{ $totalPlayed }}</span>
+          <span class="text-base-content/50 text-xs">{{ i18n "times" }}</span>
+        </div>
+        {{ if gt $videoCount 0 }}
+        <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
+          <ion-icon name="logo-youtube" class="text-error"></ion-icon>
+          <span class="text-base-content/70">{{ i18n "videos" }}</span>
+          <span class="font-bold text-error">{{ $videoCount }}</span>
+        </div>
+        {{ end }}
+        {{ if $firstPublicTalk }}
+        <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
+          <ion-icon name="calendar" class="text-secondary"></ion-icon>
+          <span class="text-base-content/70">First</span>
+          <span class="font-bold text-secondary">{{ $firstPublicTalk.Date | time.Format "Jan 2006" }}</span>
+        </div>
+        {{ end }}
+        {{ if $lastPublicTalk }}
+        <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
+          <ion-icon name="time" class="text-accent"></ion-icon>
+          <span class="text-base-content/70">Last</span>
+          <span class="font-bold text-accent">{{ $lastPublicTalk.Date | time.Format "Jan 2006" }}</span>
+        </div>
+        {{ end }}
+      </div>
+
+      {{/* Cover image - auto-detect cover.* file */}}
+      {{ $cover := "" }}
+      {{ if .Params.cover }}
+        {{ $cover = .Resources.GetMatch .Params.cover }}
+      {{ else }}
+        {{ $cover = .Resources.GetMatch "cover.*" }}
+      {{ end }}
+      {{ if $cover }}
+      <figure class="my-4">
+        <img class="rounded-lg shadow-lg w-full" src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" />
+        {{ with .Params.covercaption }}
+          <figcaption class="text-sm italic text-center mt-2">{{ . }}</figcaption>
+        {{ end }}
+      </figure>
+      {{ end }}
+
+      <div class="divider"></div>
+      <h2>Abstract</h2>
+      {{ .Content | emojify }}
+      {{ end }}
+
+      {{/* Links section if any */}}
+      {{- with .Params.links -}}
+      <div class="divider"></div>
+      <h2 id="resources">Resources</h2>
+      <p>Useful resources related to this talk.</p>
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 my-4">
+        {{- range . -}}
+        <a href="{{ .url }}" target="_blank" rel="noopener noreferrer" class="card bg-base-200 hover:bg-base-300 transition-colors no-underline">
+          <div class="card-body p-2">
+            <h3 class="card-title m-0">{{ .title }} <ion-icon name="open-outline" class="text-sm"></ion-icon></h3>
+            {{- $desc := or .description .details -}}
+            {{- with $desc -}}
+            <blockquote class="m-0 py-1 text-sm">{{ . | emojify | markdownify }}</blockquote>
+            {{- end -}}
+          </div>
+        </a>
+        {{- end -}}
+      </div>
+      {{- end -}}
+
+      {{/* Prev/Next template navigation */}}
+      {{ if or $prevTemplate $nextTemplate }}
+      <div class="divider"></div>
+      <div class="flex flex-col md:flex-row justify-between gap-4 py-4 not-prose">
+        {{ if $prevTemplate }}
+        {{ $prevTitle := $prevTemplate.Title }}
+        {{ with $prevTemplate.Params.versions }}{{ $prevTitle = (index . 0).title }}{{ end }}
+        <a role="button" class="btn btn-outline h-12" href="{{ $prevTemplate.RelPermalink }}" title="{{ $prevTitle }}">
+          <ion-icon name="chevron-back"></ion-icon>
+          <div class="inline-flex flex-col items-start">
+            <span class="text-base-content/60 text-xs font-normal">Previous template</span>
+            <span class="max-w-48 truncate">{{ $prevTitle }}</span>
+          </div>
+        </a>
+        {{ else }}
+        <div></div>
+        {{ end }}
+
+        {{ if $nextTemplate }}
+        {{ $nextTitle := $nextTemplate.Title }}
+        {{ with $nextTemplate.Params.versions }}{{ $nextTitle = (index . 0).title }}{{ end }}
+        <a role="button" class="btn btn-outline h-12" href="{{ $nextTemplate.RelPermalink }}" title="{{ $nextTitle }}">
+          <div class="inline-flex flex-col items-end">
+            <span class="text-base-content/60 text-xs font-normal">Next template</span>
+            <span class="max-w-48 truncate">{{ $nextTitle }}</span>
+          </div>
+          <ion-icon name="chevron-forward"></ion-icon>
+        </a>
+        {{ else }}
+        <div></div>
+        {{ end }}
+      </div>
+      {{ end }}
+
+    </article>
+  </div>
+
+  {{/* Right column - empty */}}
+  <div class="hidden lg:block"></div>
+</div>
+
+{{/* Conference list - full width with year grouping */}}
+{{ if gt (len $sortedTalks) 0 }}
+<div class="mt-8 px-4" style="max-width: 1600px; margin: 0 auto;">
+  <div class="divider my-8"></div>
+  <h2 class="text-2xl font-bold mb-4">Conferences</h2>
+  
+  {{/* Group talks by year using scratch */}}
+  {{ $yearScratch := newScratch }}
+  {{ $yearScratch.Set "years" slice }}
+  {{ range $sortedTalks }}
+    {{ $year := .Date.Format "2006" }}
+    {{ if not ($yearScratch.Get $year) }}
+      {{ $yearScratch.Set $year slice }}
+      {{ $yearScratch.Add "years" $year }}
+    {{ end }}
+    {{ $yearScratch.Add $year (slice .) }}
+  {{ end }}
+  {{ $sortedYears := sort ($yearScratch.Get "years") "value" "desc" }}
+
+  {{ range $sortedYears }}
+  {{ $year := . }}
+  {{ $yearTalks := $yearScratch.Get $year }}
+  <section id="year-{{ $year }}" class="mb-12">
+    <div class="flex items-center gap-4 mb-6">
+      <div class="year-badge">
+        <span class="text-xl font-black">{{ $year }}</span>
+      </div>
+      <div class="year-line"></div>
+      <span class="badge badge-lg badge-ghost year-pill">{{ len $yearTalks }} talks</span>
+    </div>
+
+    <div class="talks-grid">
+      {{ range $yearTalks }}
+      <article class="card bg-base-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+        {{ $cover := "" }}
+        {{ if .Params.cover }}
+          {{ $cover = .Resources.GetMatch .Params.cover }}
+        {{ else }}
+          {{ $cover = .Resources.GetMatch "cover.*" }}
+        {{ end }}
+        {{ if $cover }}
+        <figure class="relative overflow-hidden h-40">
+          {{ if le .Date $now }}
+          <a href="{{ .RelPermalink }}">
+          {{ end }}
+            <img src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+            <div class="absolute inset-0 bg-gradient-to-t from-base-200/80 to-transparent"></div>
+          {{ if le .Date $now }}
+          </a>
+          {{ end }}
+        </figure>
+        {{ end }}
+        <div class="card-body p-4">
+          <div class="flex flex-wrap gap-2 mb-2">
+            {{ partial "countryFlag.html" .Params.conference }}
+            {{ partial "langLabel.html" . }}
+            {{ partial "slidesLabel.html" . }}
+            {{ partial "videoLabel.html" . }}
+
+            {{ if gt .Date $now }}
+            <span class="badge badge-primary badge-sm gap-1">
+              <ion-icon name="alarm" class="text-xs"></ion-icon>
+              Upcoming
+            </span>
+            {{ end }}
+          </div>
+          <h3 class="card-title text-base leading-tight line-clamp-2 min-h-[2.5rem]">
+            {{ if gt .Date $now }}
+            {{ .Title }}
+            {{ else }}
+            <a href="{{ .RelPermalink }}" class="hover:text-primary transition-colors">{{ .Title }}</a>
+            {{ end }}
+          </h3>
+          <div class="mt-auto pt-3 border-t border-base-content/10">
+            <div class="flex items-center justify-between text-xs text-base-content/50">
+              {{ if .Params.conference.url }}
+              <a href="{{ .Params.conference.url }}" target="_blank" class="truncate max-w-[60%] hover:text-primary" title="{{ .Params.conference.name }}">{{ .Params.conference.name }}</a>
+              {{ else }}
+              <span class="truncate max-w-[60%]" title="{{ .Params.conference.name }}">{{ .Params.conference.name }}</span>
+              {{ end }}
+              <span title="{{ .Date | time.Format "January 2, 2006" }}">{{ .Date | time.Format "Jan 2" }}</span>
+            </div>
+          </div>
+        </div>
+      </article>
+      {{ end }}
+    </div>
+  </section>
+  {{ end }}
+
+</div>
+{{ end }}
+
+{{ end }}
+
+{{ define "js" }}
+
+<script>
+  function copyToClipboard(button) {
+    const codeBlock = button.parentElement;
+    const code = codeBlock.querySelector('code');
+    const text = code.textContent;
+    
+    navigator.clipboard.writeText(text).then(() => {
+      // Change icon to checkmark
+      const icon = button.querySelector('ion-icon');
+      icon.setAttribute('name', 'checkmark-outline');
+      button.classList.add('copied');
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        icon.setAttribute('name', 'copy-outline');
+        button.classList.remove('copied');
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+    });
+  }
+</script>
+
+{{ if site.Params.customSyntaxHighlighting }}
+  {{- $syntaxLightCSS := resources.Get "css/syntax-light.css" | minify -}}
+  {{- $syntaxDarkCSS := resources.Get "css/syntax-dark.css" | minify -}}
+
+  <script>
+    window.customSyntaxHighlighting = {
+      light: {{ $syntaxLightCSS.RelPermalink }},
+      dark: {{ $syntaxDarkCSS.RelPermalink }}
+    }
+
+    document.addEventListener('alpine:initialized', () => {
+      var isDark = Alpine.store('darkMode').isDark()
+      var customSyntaxHighlightingUrl = isDark ? window.customSyntaxHighlighting.dark : window.customSyntaxHighlighting.light
+
+      document
+        .querySelector('link[data-custom-syntax-highlighting]')
+        .setAttribute('href', customSyntaxHighlightingUrl)
+    })
+  </script>
+{{ end }}
+
+{{ end }}
+

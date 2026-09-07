@@ -1,0 +1,688 @@
+{{ define "title" }}{{ .Title }}{{ end }}
+
+{{ define "css" }}
+
+{{ if site.Params.customSyntaxHighlighting }}
+<link rel="stylesheet" data-custom-syntax-highlighting />
+<style>
+  .chroma {
+    padding: 1em;
+    background-color: var(--dream-pre-bg, #f5f5f5);
+    border-radius: .5em;
+    overflow: auto;
+  }
+
+  html.dark .chroma {
+    background-color: var(--dream-pre-bg-dark, #262626);
+  }
+</style>
+{{ else }}
+<style>
+  pre {
+    padding: 1em;
+    overflow: auto;
+  }
+</style>
+{{ end }}
+
+{{ partialCached "commentSystemHeads.html" . }}
+
+{{ end }}
+
+{{ define "main" }}
+{{/* Build the related talks list first (including current page) */}}
+{{ $relatedTalks := slice }}
+{{ $currentPagePermalink := .Permalink }}
+{{ with .Params.talk }}
+  {{ $currentTalk := . }}
+  {{ range where (where site.RegularPages "Section" "talks") ".Params.talk" $currentTalk }}
+    {{/* Exclude template pages (they have layout: "template") */}}
+    {{ if ne .Params.layout "template" }}
+      {{ $relatedTalks = $relatedTalks | append . }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+{{/* Build the conference talks list (other talks at the same conference) */}}
+{{ $conferenceTalks := slice }}
+{{ with .Params.conference.name }}
+  {{ $currentConference := . }}
+  {{ range where site.RegularPages "Section" "talks" }}
+    {{ if eq .Params.conference.name $currentConference }}
+      {{ $conferenceTalks = $conferenceTalks | append . }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+<div class="flex flex-col lg:grid lg:grid-cols-4 gap-4 mt-4 px-4">
+  {{/* Left column - empty for now */}}
+  <div class="hidden lg:block">
+  </div>
+
+  {{/* Main content - spans 2 columns */}}
+  <div class="lg:col-span-2 min-w-0">
+    <article class="mx-auto prose prose-quoteless dark:prose-invert max-w-none lg:max-w-prose" id="dream-single-post-main" itemscope itemtype="http://schema.org/Article" data-pagefind-body data-pagefind-filter="section:talks">
+      {{ template "_internal/schema.html" . }}
+      {{ partial "pagefind-cover-meta.html" . }}
+      {{ partial "pagefind-type-meta.html" . }}
+      {{ partial "pagefind-sort-meta.html" . }}
+      {{ with .Params.youtube }}
+      <span hidden data-pagefind-filter="section:videos"></span>
+      {{ end }}
+
+      <header>
+        <h1 itemprop="headline" style="margin-bottom: 0.25rem;" data-pagefind-meta="title">{{ .Title }}</h1>
+        <div class="flex justify-between items-start gap-4">
+          <div class="flex flex-col">
+            <p class="m-0">
+              {{ if .Params.conference.url }}
+                <a href="{{ .Params.conference.url }}" target="_blank">{{ .Params.conference.name }}</a>
+              {{ else }}
+                {{ .Params.conference.name }}
+              {{ end }}
+            {{ if .Params.conference.city }}
+              <span>–</span>
+              {{ if and .Params.conference.latitude .Params.conference.longitude }}
+                <a href="https://www.google.com/maps?q={{ .Params.conference.latitude }},{{ .Params.conference.longitude }}" target="_blank" rel="noopener noreferrer">{{ .Params.conference.city }}</a>
+              {{ else }}
+                {{ .Params.conference.city }}
+              {{ end }}
+            {{ end }}
+            {{ if .Params.conference.city }}
+              {{ partial "countryFlag.html" .Params.conference }}
+            {{ end }}
+            </p>
+          </div>
+          <p class="m-0 text-right">
+            {{ .Date | time.Format "Jan. 2006" }}
+          </p>
+        </div>
+
+        {{ $hasAuthor := or .Params.authors .Params.author site.Params.author }}
+        <div class="flex justify-between">
+          {{ if $hasAuthor }}
+            {{ partial "author.html" (dict "Params" .Params "template" "single") }}
+          {{ end }}
+
+          {{ partial "share.html" . }}
+        </div>
+      </header>
+
+      {{ if .Params.pdf }}
+      <div class="divider" data-pagefind-ignore></div>
+        <div data-pagefind-ignore>
+        <h2>{{ i18n "slides" }}</h2>
+        {{ partial "pdf.html" (dict "ctx" $ "pdf_url" .Params.pdf) }}
+        </div>
+      {{ else }}
+        {{ $cover := "" }}
+        {{ if .Params.cover }}
+          {{ $cover = .Resources.GetMatch .Params.cover }}
+        {{ else }}
+          {{ $cover = .Resources.GetMatch "cover.*" }}
+        {{ end }}
+        {{ if and $cover site.Params.showSummaryCoverInPost }}
+        <figure>
+          <img class="z-30" src="{{ $cover }}" alt="{{ .Title }}" />
+          {{ with .Params.covercaption }}
+            <figcaption class="text-sm italic text-center mt-2">{{ . }}</figcaption>
+          {{ end }}
+        </figure>
+        {{ end }}
+      {{ end }}
+      
+      <div class="divider"></div>
+      <h2>Abstract</h2>
+      {{ .Content | emojify }}
+
+
+      {{ with .Params.youtube }}
+      <div data-pagefind-ignore>
+      <div class="divider"></div>
+      <h2 id="video">Video</h2>
+
+      <div class="youtube-embed my-4" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+        <iframe 
+          src="https://www.youtube.com/embed/{{ . }}" 
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" 
+          allowfullscreen 
+          title="YouTube Video">
+        </iframe>
+      </div>
+      </div>
+      {{ end }}
+
+      {{- with .Params.links -}}
+      <div class="divider"></div>
+      <h2 id="resources">{{ i18n "resources" }}</h2>
+      <p>The following resources were mentioned during the presentation or are useful additional information.</p>
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 my-4">
+        {{- range . -}}
+        <a href="{{ .url }}" target="_blank" rel="noopener noreferrer" class="card bg-base-200 hover:bg-base-300 transition-colors no-underline">
+          <div class="card-body p-2">
+            <h3 class="card-title m-0">{{ .title }} <ion-icon name="open-outline" class="text-sm"></ion-icon></h3>
+            {{- $desc := or .description .details -}}
+            {{- with $desc -}}
+            <blockquote class="m-0 py-1 text-sm">{{ . | emojify | markdownify }}</blockquote>
+            {{- end -}}
+          </div>
+        </a>
+        {{- end -}}
+      </div>
+      {{- end -}}
+
+      <div class="post-content">
+
+        {{- with .Params.social -}}
+        <div class="social-embeds" data-pagefind-ignore>
+          <h2>{{ i18n "buzzAndFeedback" }}</h2>
+          <p>Here's what was said about this presentation on social media.</p>
+          {{- range . -}}
+            {{- partial "social-embed.html" (dict "url" .) -}}
+          {{- end -}}
+        </div>
+        {{- end -}}
+      </div>
+      
+      {{ if site.Params.showPrevNextPost }}
+      <div class="divider" data-pagefind-ignore></div>
+      <div class="flex flex-col md:flex-row justify-between gap-4 py-4" data-pagefind-ignore>
+        {{ $now := now }}
+        {{ with .NextInSection }}
+          {{ if le .Date $now }}
+          <a role="button" class="btn btn-outline h-12" href="{{ .RelPermalink }}" title="{{ .Title }}">
+            <ion-icon name="chevron-back"></ion-icon>
+            <div class="inline-flex flex-col items-start">
+              <span class="text-base-content/60 text-xs font-normal">{{ T "prevPage" }}</span>
+              <span class="max-w-48 truncate">{{ .LinkTitle }}</span>
+            </div>
+          </a>
+          {{ else }}
+          <div></div>
+          {{ end }}
+        {{ else }}
+        <div></div>
+        {{ end }}
+
+        {{ with .PrevInSection }}
+        <a role="button" class="btn btn-outline h-12" href="{{ .RelPermalink }}" title="{{ .Title }}">
+          <div class="inline-flex flex-col items-end">
+            <span class="text-base-content/60 text-xs font-normal">{{ T "nextPage" }}</span>
+            <span class="max-w-48 truncate">{{ .LinkTitle }}</span>
+          </div>
+          <ion-icon name="chevron-forward"></ion-icon>
+        </a>
+        {{ else }}
+        <div></div>
+        {{ end }}
+      </div>
+      {{ end }}
+
+      {{ if or site.Config.Services.Disqus.Shortname site.Params.utterancesRepo site.Params.valine site.Params.waline site.Params.twikoo.enabled }}
+      <div class="divider"></div>
+
+      <section class="space-y-4">
+        {{ partialCached "commentSystems.html" . .RelPermalink }}
+      </section>
+      {{ end }}
+    </article>
+  </div>
+
+  {{/* Right sidebar - TOC and See also */}}
+  <div
+    x-data="tocHighlighter()"
+    @scroll.window="debouncedScroll"
+    class="flex flex-col space-y-4 lg:items-end"
+  >
+    {{/* Table of Contents */}}
+    {{ if site.Params.showTableOfContents }}
+      {{ .TableOfContents }}
+    {{ end }}
+
+    {{/* See also section - other conferences with the same talk */}}
+    {{ if gt (len $relatedTalks) 0 }}
+    {{ $totalRelated := len $relatedTalks }}
+    {{ $sortedRelated := sort $relatedTalks ".Date" "desc" }}
+    {{ $displayLimit := 7 }}
+    
+    <nav class="w-full">
+      <div class="text-sm font-semibold mb-2 flex flex-wrap items-center gap-2">
+        {{ i18n "played" }}
+        {{ $templateSlug := .Params.talk | urlize }}
+        {{ $templatePage := site.GetPage (printf "/talks/templates/%s" $templateSlug) }}
+        {{ if $templatePage }}
+        <a href="{{ $templatePage.RelPermalink }}" class="badge badge-sm badge-neutral whitespace-nowrap hover:badge-primary transition-colors">{{ .Params.talk }}</a>
+        {{ else }}
+        <span class="badge badge-sm badge-neutral whitespace-nowrap">{{ .Params.talk }}</span>
+        {{ end }}
+        <span class="badge badge-sm badge-primary">{{ $totalRelated }}</span>
+        {{ i18n "times" }}
+      </div>
+      {{ $now := now }}
+      <ul class="menu menu-sm bg-base-200 rounded-box w-full max-h-[40vh] overflow-y-auto">
+        {{ if le $totalRelated $displayLimit }}
+          {{/* Afficher tous les talks si moins que la limite */}}
+          {{ range $sortedRelated }}
+          {{ $isCurrent := eq .Permalink $currentPagePermalink }}
+          {{ $isUpcoming := gt .Date $now }}
+          <li>
+            {{ if $isUpcoming }}
+            {{/* Talk à venir : pas de lien direct, juste une icône discrète */}}
+            <div class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(34, 197, 94, 0.25);"{{ end }}>
+              <span class="text-xs text-base-content/60">{{ .Date | time.Format "2006-01-02" }} – {{ .Params.conference.name }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
+              <span class="text-sm">{{ .Title }} <a href="{{ .RelPermalink }}" title="Voir les détails">&nbsp;</a></span>
+            </div>
+            {{ else }}
+            <a href="{{ .RelPermalink }}" class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(34, 197, 94, 0.25);"{{ end }}>
+              <span class="text-xs text-base-content/60">{{ .Date | time.Format "2006-01-02" }} – {{ .Params.conference.name }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
+              <span class="text-sm">{{ .Title }}</span>
+            </a>
+            {{ end }}
+          </li>
+          {{ end }}
+        {{ else }}
+          {{/* Logique pour afficher avec "..." au milieu - toujours 7 talks */}}
+          {{/* Trouver l'index du talk actuel */}}
+          {{ $scratch := newScratch }}
+          {{ $scratch.Set "currentIndex" 0 }}
+          {{ range $idx, $talk := $sortedRelated }}
+            {{ if eq $talk.Permalink $currentPagePermalink }}
+              {{ $scratch.Set "currentIndex" $idx }}
+            {{ end }}
+          {{ end }}
+          {{ $currentIndex := $scratch.Get "currentIndex" }}
+          {{ $lastIndex := sub $totalRelated 1 }}
+          
+          {{/* Zones de base */}}
+          {{ $baseRecentEnd := 1 }}
+          {{/* Zone centrale: 1 précédent + talk actuel + 1 suivant = 3 talks */}}
+          {{ $aroundStartCalc := sub $currentIndex 1 }}
+          {{ $aroundStart := cond (gt $aroundStartCalc 0) $aroundStartCalc 0 }}
+          {{ $aroundEndCalc := add $currentIndex 1 }}
+          {{ $aroundEnd := cond (lt $aroundEndCalc $lastIndex) $aroundEndCalc $lastIndex }}
+          {{ $baseOldStart := sub $totalRelated 2 }}
+          
+          {{/* Calculer le nombre d'indices uniques avec les zones de base */}}
+          {{/* Zone récente: 0 à baseRecentEnd */}}
+          {{/* Zone centrale: aroundStart à aroundEnd */}}
+          {{/* Zone ancienne: baseOldStart à lastIndex */}}
+          
+          {{/* Calculer les chevauchements */}}
+          {{/* Chevauchement récent/central: si aroundStart <= baseRecentEnd */}}
+          {{ $overlapRecentCentral := 0 }}
+          {{ if le $aroundStart $baseRecentEnd }}
+            {{ $overlapRecentCentral = add (sub $baseRecentEnd $aroundStart) 1 }}
+          {{ end }}
+          
+          {{/* Chevauchement central/ancien: si aroundEnd >= baseOldStart */}}
+          {{ $overlapCentralOld := 0 }}
+          {{ if ge $aroundEnd $baseOldStart }}
+            {{ $overlapCentralOld = add (sub $aroundEnd $baseOldStart) 1 }}
+          {{ end }}
+          
+          {{/* Nombre d'indices uniques = 2 (récent) + 3 (central) + 2 (ancien) - chevauchements */}}
+          {{ $recentCount := add $baseRecentEnd 1 }}
+          {{ $centralCount := add (sub $aroundEnd $aroundStart) 1 }}
+          {{ $oldCount := add (sub $lastIndex $baseOldStart) 1 }}
+          {{ $uniqueCount := sub (add (add $recentCount $centralCount) $oldCount) (add $overlapRecentCentral $overlapCentralOld) }}
+          
+          {{/* Calculer combien de talks manquent pour atteindre 7 */}}
+          {{ $missing := sub $displayLimit $uniqueCount }}
+          
+          {{/* Étendre les zones pour compenser */}}
+          {{ $recentEnd := $baseRecentEnd }}
+          {{ $oldStart := $baseOldStart }}
+          
+          {{ if gt $missing 0 }}
+            {{/* Calculer les gaps disponibles pour extension */}}
+            {{/* Gap entre récent et central */}}
+            {{ $gapAfterRecent := 0 }}
+            {{ if gt $aroundStart (add $baseRecentEnd 1) }}
+              {{ $gapAfterRecent = sub (sub $aroundStart $baseRecentEnd) 1 }}
+            {{ end }}
+            
+            {{/* Gap entre central et ancien */}}
+            {{ $gapBeforeOld := 0 }}
+            {{ if gt $baseOldStart (add $aroundEnd 1) }}
+              {{ $gapBeforeOld = sub (sub $baseOldStart $aroundEnd) 1 }}
+            {{ end }}
+            
+            {{/* Si talk actuel dans la seconde moitié, étendre d'abord récent, sinon étendre ancien */}}
+            {{ $halfPoint := div $totalRelated 2 }}
+            {{ if ge $currentIndex $halfPoint }}
+              {{/* Priorité: étendre la zone récente */}}
+              {{ $extendRecent := cond (lt $missing $gapAfterRecent) $missing $gapAfterRecent }}
+              {{ $recentEnd = add $baseRecentEnd $extendRecent }}
+              {{ $remaining := sub $missing $extendRecent }}
+              {{ if gt $remaining 0 }}
+                {{ $extendOld := cond (lt $remaining $gapBeforeOld) $remaining $gapBeforeOld }}
+                {{ $oldStart = sub $baseOldStart $extendOld }}
+              {{ end }}
+            {{ else }}
+              {{/* Priorité: étendre la zone ancienne */}}
+              {{ $extendOld := cond (lt $missing $gapBeforeOld) $missing $gapBeforeOld }}
+              {{ $oldStart = sub $baseOldStart $extendOld }}
+              {{ $remaining := sub $missing $extendOld }}
+              {{ if gt $remaining 0 }}
+                {{ $extendRecent := cond (lt $remaining $gapAfterRecent) $remaining $gapAfterRecent }}
+                {{ $recentEnd = add $baseRecentEnd $extendRecent }}
+              {{ end }}
+            {{ end }}
+          {{ end }}
+          
+          {{/* Afficher avec gestion des gaps */}}
+          {{ $scratch.Set "lastDisplayedIndex" -2 }}
+          {{ range $idx, $talk := $sortedRelated }}
+            {{ $shouldDisplay := false }}
+            
+            {{/* Dans zone récente? */}}
+            {{ if le $idx $recentEnd }}
+              {{ $shouldDisplay = true }}
+            {{ end }}
+            
+            {{/* Dans zone centrale? (talk actuel + suivants) */}}
+            {{ if and (ge $idx $aroundStart) (le $idx $aroundEnd) }}
+              {{ $shouldDisplay = true }}
+            {{ end }}
+            
+            {{/* Dans zone ancienne? */}}
+            {{ if ge $idx $oldStart }}
+              {{ $shouldDisplay = true }}
+            {{ end }}
+            
+            {{ if $shouldDisplay }}
+              {{/* Gérer le gap : afficher "skipped X talks" seulement si X > 1 */}}
+              {{ $lastIdx := $scratch.Get "lastDisplayedIndex" }}
+              {{ $gap := sub $idx $lastIdx }}
+              {{ if gt $gap 2 }}
+                {{/* Si plus d'un talk skippé, afficher le message */}}
+                {{ $skipped := sub $gap 1 }}
+                <li class="menu-title text-xs text-center py-1">
+                  <span class="text-base-content/50">... skipped {{ $skipped }} talks ...</span>
+                </li>
+              {{ end }}
+              {{/* Si gap == 2 (1 seul talk skippé), on n'affiche rien pour ne pas dépasser la limite */}}
+              
+              {{/* Afficher le talk */}}
+              {{ $isCurrent := eq $talk.Permalink $currentPagePermalink }}
+              {{ $isUpcoming := gt $talk.Date $now }}
+              <li>
+                {{ if $isUpcoming }}
+                {{/* Talk à venir : pas de lien direct, juste une icône discrète */}}
+                <div class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(34, 197, 94, 0.25);"{{ end }}>
+                  <span class="text-xs text-base-content/60">{{ $talk.Date | time.Format "2006-01-02" }} – {{ $talk.Params.conference.name }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
+                  <span class="text-sm">{{ $talk.Title }} <a href="{{ $talk.RelPermalink }}" title="Voir les détails"><ion-icon name="open-outline" class="text-xs"></ion-icon></a></span>
+                </div>
+                {{ else }}
+                <a href="{{ $talk.RelPermalink }}" class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(34, 197, 94, 0.25);"{{ end }}>
+                  <span class="text-xs text-base-content/60">{{ $talk.Date | time.Format "2006-01-02" }} – {{ $talk.Params.conference.name }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
+                  <span class="text-sm">{{ $talk.Title }}</span>
+                </a>
+                {{ end }}
+              </li>
+              
+              {{ $scratch.Set "lastDisplayedIndex" $idx }}
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      </ul>
+    </nav>
+    {{ end }}
+
+    {{/* At this conference section - other talks at the same conference */}}
+    {{ if gt (len $conferenceTalks) 1 }}
+    {{ $totalConference := len $conferenceTalks }}
+    {{ $sortedConference := sort $conferenceTalks ".Date" "desc" }}
+    {{ $displayLimit := 15 }}
+    
+    <nav class="w-full">
+      <div class="text-sm font-semibold mb-2 flex flex-wrap items-center gap-2">
+        {{ i18n "gaveTalksAt" }}
+        <span class="badge badge-sm badge-info">{{ $totalConference }}</span>
+        {{ i18n "talksAt" }}
+        <span class="badge badge-sm badge-info whitespace-nowrap">{{ .Params.conference.name }}</span>
+      </div>
+      {{ $now := now }}
+      <ul class="menu menu-sm bg-base-200 rounded-box w-full max-h-[40vh] overflow-y-auto">
+        {{ if le $totalConference $displayLimit }}
+          {{/* Afficher tous les talks si moins de 16 */}}
+          {{ range $sortedConference }}
+          {{ $isCurrent := eq .Permalink $currentPagePermalink }}
+          {{ $isUpcoming := gt .Date $now }}
+          <li>
+            {{ if $isUpcoming }}
+            {{/* Talk à venir : pas de lien direct, juste une icône discrète */}}
+            <div class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(59, 130, 246, 0.25);"{{ end }}>
+              <span class="text-xs text-base-content/60">{{ .Date | time.Format "2006-01-02" }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
+              <span class="text-sm">{{ .Title }} <a href="{{ .RelPermalink }}" title="Voir les détails">&nbsp;</a></span>
+            </div>
+            {{ else }}
+            <a href="{{ .RelPermalink }}" class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(59, 130, 246, 0.25);"{{ end }}>
+              <span class="text-xs text-base-content/60">{{ .Date | time.Format "2006-01-02" }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
+              <span class="text-sm">{{ .Title }}</span>
+            </a>
+            {{ end }}
+          </li>
+          {{ end }}
+        {{ else }}
+          {{/* Logique pour afficher avec "..." au milieu - toujours 15 talks */}}
+          {{/* Trouver l'index du talk actuel */}}
+          {{ $scratch := newScratch }}
+          {{ $scratch.Set "currentIndex" 0 }}
+          {{ range $idx, $talk := $sortedConference }}
+            {{ if eq $talk.Permalink $currentPagePermalink }}
+              {{ $scratch.Set "currentIndex" $idx }}
+            {{ end }}
+          {{ end }}
+          {{ $currentIndex := $scratch.Get "currentIndex" }}
+          {{ $lastIndex := sub $totalConference 1 }}
+          
+          {{/* Zones de base */}}
+          {{ $baseRecentEnd := 4 }}
+          {{/* Zone centrale: 1 précédent + talk actuel + 3 suivants = 5 talks */}}
+          {{ $aroundStartCalc := sub $currentIndex 1 }}
+          {{ $aroundStart := cond (gt $aroundStartCalc 0) $aroundStartCalc 0 }}
+          {{ $aroundEndCalc := add $currentIndex 3 }}
+          {{ $aroundEnd := cond (lt $aroundEndCalc $lastIndex) $aroundEndCalc $lastIndex }}
+          {{ $baseOldStart := sub $totalConference 5 }}
+          
+          {{/* Calculer le nombre d'indices uniques avec les zones de base */}}
+          {{/* Zone récente: 0 à baseRecentEnd */}}
+          {{/* Zone centrale: aroundStart à aroundEnd */}}
+          {{/* Zone ancienne: baseOldStart à lastIndex */}}
+          
+          {{/* Calculer les chevauchements */}}
+          {{/* Chevauchement récent/central: si aroundStart <= baseRecentEnd */}}
+          {{ $overlapRecentCentral := 0 }}
+          {{ if le $aroundStart $baseRecentEnd }}
+            {{ $overlapRecentCentral = add (sub $baseRecentEnd $aroundStart) 1 }}
+          {{ end }}
+          
+          {{/* Chevauchement central/ancien: si aroundEnd >= baseOldStart */}}
+          {{ $overlapCentralOld := 0 }}
+          {{ if ge $aroundEnd $baseOldStart }}
+            {{ $overlapCentralOld = add (sub $aroundEnd $baseOldStart) 1 }}
+          {{ end }}
+          
+          {{/* Nombre d'indices uniques = 5 (récent) + 5 (central) + 5 (ancien) - chevauchements */}}
+          {{ $recentCount := add $baseRecentEnd 1 }}
+          {{ $centralCount := add (sub $aroundEnd $aroundStart) 1 }}
+          {{ $oldCount := add (sub $lastIndex $baseOldStart) 1 }}
+          {{ $uniqueCount := sub (add (add $recentCount $centralCount) $oldCount) (add $overlapRecentCentral $overlapCentralOld) }}
+          
+          {{/* Calculer combien de talks manquent pour atteindre 15 */}}
+          {{ $missing := sub $displayLimit $uniqueCount }}
+          
+          {{/* Étendre les zones pour compenser */}}
+          {{ $recentEnd := $baseRecentEnd }}
+          {{ $oldStart := $baseOldStart }}
+          
+          {{ if gt $missing 0 }}
+            {{/* Calculer les gaps disponibles pour extension */}}
+            {{/* Gap entre récent et central */}}
+            {{ $gapAfterRecent := 0 }}
+            {{ if gt $aroundStart (add $baseRecentEnd 1) }}
+              {{ $gapAfterRecent = sub (sub $aroundStart $baseRecentEnd) 1 }}
+            {{ end }}
+            
+            {{/* Gap entre central et ancien */}}
+            {{ $gapBeforeOld := 0 }}
+            {{ if gt $baseOldStart (add $aroundEnd 1) }}
+              {{ $gapBeforeOld = sub (sub $baseOldStart $aroundEnd) 1 }}
+            {{ end }}
+            
+            {{/* Si talk actuel dans la seconde moitié, étendre d'abord récent, sinon étendre ancien */}}
+            {{ $halfPoint := div $totalConference 2 }}
+            {{ if ge $currentIndex $halfPoint }}
+              {{/* Priorité: étendre la zone récente */}}
+              {{ $extendRecent := cond (lt $missing $gapAfterRecent) $missing $gapAfterRecent }}
+              {{ $recentEnd = add $baseRecentEnd $extendRecent }}
+              {{ $remaining := sub $missing $extendRecent }}
+              {{ if gt $remaining 0 }}
+                {{ $extendOld := cond (lt $remaining $gapBeforeOld) $remaining $gapBeforeOld }}
+                {{ $oldStart = sub $baseOldStart $extendOld }}
+              {{ end }}
+            {{ else }}
+              {{/* Priorité: étendre la zone ancienne */}}
+              {{ $extendOld := cond (lt $missing $gapBeforeOld) $missing $gapBeforeOld }}
+              {{ $oldStart = sub $baseOldStart $extendOld }}
+              {{ $remaining := sub $missing $extendOld }}
+              {{ if gt $remaining 0 }}
+                {{ $extendRecent := cond (lt $remaining $gapAfterRecent) $remaining $gapAfterRecent }}
+                {{ $recentEnd = add $baseRecentEnd $extendRecent }}
+              {{ end }}
+            {{ end }}
+          {{ end }}
+          
+          {{/* Afficher avec gestion des gaps */}}
+          {{ $scratch.Set "lastDisplayedIndex" -2 }}
+          {{ range $idx, $talk := $sortedConference }}
+            {{ $shouldDisplay := false }}
+            
+            {{/* Dans zone récente? */}}
+            {{ if le $idx $recentEnd }}
+              {{ $shouldDisplay = true }}
+            {{ end }}
+            
+            {{/* Dans zone centrale? (talk actuel + suivants) */}}
+            {{ if and (ge $idx $aroundStart) (le $idx $aroundEnd) }}
+              {{ $shouldDisplay = true }}
+            {{ end }}
+            
+            {{/* Dans zone ancienne? */}}
+            {{ if ge $idx $oldStart }}
+              {{ $shouldDisplay = true }}
+            {{ end }}
+            
+            {{ if $shouldDisplay }}
+              {{/* Gérer le gap : afficher "skipped X talks" seulement si X > 1 */}}
+              {{ $lastIdx := $scratch.Get "lastDisplayedIndex" }}
+              {{ $gap := sub $idx $lastIdx }}
+              {{ if gt $gap 2 }}
+                {{/* Si plus d'un talk skippé, afficher le message */}}
+                {{ $skipped := sub $gap 1 }}
+                <li class="menu-title text-xs text-center py-1">
+                  <span class="text-base-content/50">... skipped {{ $skipped }} talks ...</span>
+                </li>
+              {{ end }}
+              {{/* Si gap == 2 (1 seul talk skippé), on n'affiche rien pour ne pas dépasser la limite */}}
+              
+              {{/* Afficher le talk */}}
+              {{ $isCurrent := eq $talk.Permalink $currentPagePermalink }}
+              {{ $isUpcoming := gt $talk.Date $now }}
+              <li>
+                {{ if $isUpcoming }}
+                {{/* Talk à venir : pas de lien direct, juste une icône discrète */}}
+                <div class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(59, 130, 246, 0.25);"{{ end }}>
+                  <span class="text-xs text-base-content/60">{{ $talk.Date | time.Format "2006-01-02" }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
+                  <span class="text-sm">{{ $talk.Title }} <a href="{{ $talk.RelPermalink }}" title="Voir les détails"><ion-icon name="open-outline" class="text-xs"></ion-icon></a></span>
+                </div>
+                {{ else }}
+                <a href="{{ $talk.RelPermalink }}" class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(59, 130, 246, 0.25);"{{ end }}>
+                  <span class="text-xs text-base-content/60">{{ $talk.Date | time.Format "2006-01-02" }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
+                  <span class="text-sm">{{ $talk.Title }}</span>
+                </a>
+                {{ end }}
+              </li>
+              
+              {{ $scratch.Set "lastDisplayedIndex" $idx }}
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      </ul>
+    </nav>
+    {{ end }}
+  </div>
+</div>
+{{ end }}
+
+{{ define "js" }}
+
+{{ if site.Params.Experimental.jsDate }}
+  {{ partial "luxon.html" . }}
+{{ end }}
+
+{{ if site.Params.customSyntaxHighlighting }}
+  {{- $syntaxLightCSS := resources.Get "css/syntax-light.css" | minify -}}
+  {{- $syntaxDarkCSS := resources.Get "css/syntax-dark.css" | minify -}}
+
+  <script>
+    window.customSyntaxHighlighting = {
+      light: {{ $syntaxLightCSS.RelPermalink }},
+      dark: {{ $syntaxDarkCSS.RelPermalink }}
+    }
+
+    document.addEventListener('alpine:initialized', () => {
+      var isDark = Alpine.store('darkMode').isDark()
+      var customSyntaxHighlightingUrl = isDark ? window.customSyntaxHighlighting.dark : window.customSyntaxHighlighting.light
+
+      document
+        .querySelector('link[data-custom-syntax-highlighting]')
+        .setAttribute('href', customSyntaxHighlightingUrl)
+    })
+  </script>
+{{ end }}
+
+{{ $tocJs := resources.Get "js/toc.js" }}
+{{ if hugo.IsProduction }}
+  {{ $tocJs = $tocJs | minify }}
+{{ end }}
+<script src="{{ $tocJs.RelPermalink }}"></script>
+
+{{ if site.Params.imageZoomableInPost }}
+  {{ if fileExists "layouts/partials/medium-zoom.html" }}
+    {{ partialCached "medium-zoom.html" . }}
+  {{ else }}
+    <script type="module">
+      import mediumZoom from 'https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/+esm';
+      mediumZoom('#dream-single-post-content img', {
+        background: 'oklch(var(--b1))',
+        margin: 24,
+      })
+    </script>
+  {{ end }}
+{{ end }}
+
+{{ if .Params.math }}
+  {{ .Page.Store.Set "hasMathjax" true }}
+{{ end }}
+
+{{ with .Params.social }}
+  {{ $socialFlags := newScratch }}
+  {{ range . }}
+    {{ if findRE `(?i)(?:x|twitter)\.com/.+/status/` . }}
+      {{ $socialFlags.Set "hasX" true }}
+    {{ end }}
+    {{ if findRE `(?i)bsky\.app/profile/.+/post/` . }}
+      {{ $socialFlags.Set "hasBluesky" true }}
+    {{ end }}
+  {{ end }}
+  {{ if and ($socialFlags.Get "hasX") (not site.Config.Privacy.X.Disable) }}
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  {{ end }}
+  {{ if $socialFlags.Get "hasBluesky" }}
+<script async src="https://embed.bsky.app/static/embed.js" charset="utf-8"></script>
+  {{ end }}
+{{ end }}
+
+{{ end }}

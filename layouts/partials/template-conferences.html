@@ -1,0 +1,142 @@
+{{/* Partial to display the list of conferences where a talk template was played */}}
+{{/* Expects: dict "talks" (slice of talk pages sorted by date desc) */}}
+
+{{ $talks := .talks }}
+{{ $now := now }}
+
+<style>
+  .conf-timeline {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .conf-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, oklch(var(--p)), oklch(var(--s)));
+  }
+  .conf-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+  }
+  .conf-item:last-child {
+    padding-bottom: 0;
+  }
+  .conf-item::before {
+    content: '';
+    position: absolute;
+    left: -1.25rem;
+    top: 0.5rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background: oklch(var(--p));
+    border: 2px solid oklch(var(--b1));
+  }
+  .conf-item.upcoming::before {
+    background: oklch(var(--warning));
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(var(--warning) / 0.4); }
+    50% { box-shadow: 0 0 0 6px oklch(var(--warning) / 0); }
+  }
+  .conf-card {
+    background: oklch(var(--b2));
+    border-radius: 0.75rem;
+    padding: 1rem;
+    transition: all 0.2s ease;
+  }
+  .conf-card:hover {
+    background: oklch(var(--b3));
+    transform: translateX(4px);
+  }
+  .conf-date {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: oklch(var(--p));
+    margin-bottom: 0.25rem;
+  }
+  .conf-title {
+    font-weight: 600;
+    color: oklch(var(--bc));
+    margin-bottom: 0.25rem;
+  }
+  .conf-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .conf-title a:hover {
+    color: oklch(var(--p));
+  }
+  .conf-venue {
+    font-size: 0.85rem;
+    color: oklch(var(--bc) / 0.6);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .conf-venue a {
+    color: oklch(var(--p));
+    text-decoration: none;
+  }
+  .conf-venue a:hover {
+    text-decoration: underline;
+  }
+  .conf-badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+</style>
+
+<div class="conf-timeline not-prose">
+  {{ range $talks }}
+  {{ $isUpcoming := gt .Date $now }}
+  <div class="conf-item{{ if $isUpcoming }} upcoming{{ end }}">
+    <div class="conf-card">
+      <div class="conf-date">
+        {{ if $isUpcoming }}
+        <span class="badge badge-warning badge-sm mr-1">Upcoming</span>
+        {{ end }}
+        {{ .Date | time.Format "January 2, 2006" }}
+      </div>
+      <div class="conf-title">
+        {{ if $isUpcoming }}
+        {{ .Title }}
+        {{ else }}
+        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+        {{ end }}
+      </div>
+      <div class="conf-venue">
+        {{ partial "countryFlag.html" .Params.conference }}
+        {{ if .Params.conference.url }}
+        <a href="{{ .Params.conference.url }}" target="_blank" rel="noopener noreferrer">{{ .Params.conference.name }}</a>
+        {{ else }}
+        <span>{{ .Params.conference.name }}</span>
+        {{ end }}
+        {{ if and .Params.conference.city (ne .Params.conference.city "") }}
+        <span>•</span>
+        {{ if and .Params.conference.latitude .Params.conference.longitude }}
+        <a href="https://www.google.com/maps?q={{ .Params.conference.latitude }},{{ .Params.conference.longitude }}" target="_blank" rel="noopener noreferrer">{{ .Params.conference.city }}</a>
+        {{ else }}
+        <span>{{ .Params.conference.city }}</span>
+        {{ end }}
+        {{ end }}
+      </div>
+      {{ if or .Params.youtube .Params.pdf .Params.notist }}
+      <div class="conf-badges">
+        {{ partial "videoLabel.html" . }}
+        {{ partial "slidesLabel.html" . }}
+      </div>
+      {{ end }}
+    </div>
+  </div>
+  {{ end }}
+</div>
+

@@ -2,6 +2,7 @@
 # Target URL: https://dadoonet.github.io/hugo-theme-devrel/
 #
 # One-time repo setup: Settings → Pages → Source = GitHub Actions
+# Tool pins: .github/versions.env (Dependabot: Actions/npm/gomod; pins: update-tool-versions.yml)
 
 name: Deploy exampleSite
 
@@ -29,33 +30,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      HUGO_VERSION: 0.161.1
-      GO_VERSION: "1.22.x"
-      NODE_VERSION: "22"
       TZ: Europe/Paris
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
+      - name: Load tool versions
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source .github/versions.env
+          echo "HUGO_VERSION=$HUGO_VERSION" >> "$GITHUB_ENV"
+          echo "GO_VERSION=$GO_VERSION" >> "$GITHUB_ENV"
+          echo "NODE_VERSION=$NODE_VERSION" >> "$GITHUB_ENV"
+
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: exampleSite/package-lock.json
 
       - name: Install Hugo (extended)
         run: |
+          set -euo pipefail
           curl -sL -o /tmp/hugo.tar.gz \
             "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
           mkdir -p "${HOME}/.local/hugo"
@@ -67,6 +77,11 @@ jobs:
           hugo version
           go version
           node --version
+          npm --version
+
+      - name: Install npm dependencies
+        working-directory: exampleSite
+        run: npm ci
 
       - name: Build exampleSite
         working-directory: exampleSite
@@ -78,11 +93,11 @@ jobs:
             --gc \
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
-          npx --yes pagefind@1.5.0 --site public
+          npx pagefind --site public
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: exampleSite/public
 
@@ -96,4 +111,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

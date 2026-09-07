@@ -7,7 +7,6 @@ exampleSite/public/
 exampleSite/resources/
 exampleSite/.hugo_build.lock
 exampleSite/node_modules/
-exampleSite/package-lock.json
 
 # Agent working notes (specs/plans), not theme docs
 docs/

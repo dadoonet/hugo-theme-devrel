@@ -212,11 +212,22 @@ Fictional demo content (not a real speaker’s talks). Live at [dadoonet.github.
 
 A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`. One-time setup: repo **Settings → Pages → Source = GitHub Actions**.
 
+### Keeping CI tools up to date
+
+| What                               | How                                                                                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Actions (`actions/*`, etc.) | [Dependabot](.github/dependabot.yml) (weekly)                                                                                            |
+| `pagefind` (npm)                   | Dependabot on `exampleSite/` (weekly)                                                                                                    |
+| Go modules (Dream, …)              | Dependabot on `/` and `exampleSite/` (weekly)                                                                                            |
+| Hugo / Go / Node version pins      | [`.github/versions.env`](.github/versions.env), bumped by [update-tool-versions](.github/workflows/update-tool-versions.yml) (weekly PR) |
+
+Dependabot cannot rewrite arbitrary `HUGO_VERSION=` strings in workflows; those pins are centralized in `versions.env` and updated by the scheduled workflow above.
+
 ```sh
 cd exampleSite
 hugo mod tidy
 hugo --minify
-npx --yes pagefind@1.5.0 --site public
+npx --yes pagefind --site public
 hugo server
 ```
 

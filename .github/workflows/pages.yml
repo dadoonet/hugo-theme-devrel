@@ -1,7 +1,10 @@
 # Deploy exampleSite to GitHub Pages (project site).
-# Target URL: https://dadoonet.github.io/hugo-theme-devrel/
+# Target URL: https://devrel.hugo.pilato.fr/
 #
-# One-time repo setup: Settings → Pages → Source = GitHub Actions
+# One-time setup:
+# 1. DNS CNAME: devrel.hugo.pilato.fr → dadoonet.github.io
+# 2. Repo Settings → Pages → Source = GitHub Actions
+# 3. Repo Settings → Pages → Custom domain = devrel.hugo.pilato.fr (then Enforce HTTPS)
 # Tool pins: .github/versions.env (Dependabot: Actions/npm/gomod; pins: update-tool-versions.yml)
 
 name: Deploy exampleSite

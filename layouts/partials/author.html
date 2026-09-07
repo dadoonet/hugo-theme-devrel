@@ -14,7 +14,7 @@
         {{ if $author.avatar }}
         <div class="avatar mr-1">
           <div class="w-8 rounded-full">
-            <img class="my-0!" src="{{ $author.avatar }}" alt="{{ $author.author }}" />
+            <img class="my-0!" src="{{ $author.avatar | relURL }}" alt="{{ $author.author }}" />
           </div>
         </div>
         {{ else }}
@@ -41,7 +41,7 @@
     {{ if $params.avatar }}
     <div class="avatar mr-1">
       <div class="w-8 rounded-full">
-        <img class="my-0!" src="{{ $params.avatar }}" alt="{{ $params.author }}" />
+        <img class="my-0!" src="{{ $params.avatar | relURL }}" alt="{{ $params.author }}" />
       </div>
     </div>
     {{ else }}

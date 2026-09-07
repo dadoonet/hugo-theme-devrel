@@ -7,7 +7,7 @@ conference:
   country_code: "online"
 authors:
   - author: "Alex Rivera"
-    avatar: "/about/alex.svg"
+    avatar: "about/alex.svg"
 date: 2025-09-01
 talk-lang: en
 nolastmod: true

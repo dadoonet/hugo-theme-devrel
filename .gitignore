@@ -11,3 +11,7 @@ exampleSite/package-lock.json
 
 # Agent working notes (specs/plans), not theme docs
 docs/
+
+# exampleSite build output
+exampleSite/public/
+exampleSite/resources/

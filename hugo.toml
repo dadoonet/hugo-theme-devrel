@@ -30,8 +30,9 @@
   collapseNavItems = ["categories", "tags", "rss"]
 
   [params.navItems]
-    talks = { href = "/talks", icon = "mic", title = "Talks" }
-    about_me = { href = "/about", icon = "body", title = "About me" }
+    # Paths without a leading slash so relURL respects baseURL (e.g. project Pages).
+    talks = { href = "talks", icon = "mic", title = "Talks" }
+    about_me = { href = "about", icon = "body", title = "About me" }
 
   # Optional remote PDF base URL (GCS, S3, CDN…). Empty = treat pdf paths as site-relative / page-bundle.
   [params.talks]

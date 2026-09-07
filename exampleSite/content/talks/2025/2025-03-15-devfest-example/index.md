@@ -10,7 +10,7 @@ conference:
   longitude: "4.835659"
 authors:
   - author: "Alex Rivera"
-    avatar: "/about/alex.svg"
+    avatar: "about/alex.svg"
 date: 2025-03-15
 talk-lang: en
 nolastmod: true

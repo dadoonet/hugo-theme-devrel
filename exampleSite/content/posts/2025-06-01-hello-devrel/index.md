@@ -2,7 +2,7 @@
 title: "Hello from the DevRel theme"
 description: "A sample blog post for the example site"
 author: "Alex Rivera"
-avatar: "/about/alex.svg"
+avatar: "about/alex.svg"
 tags:
   - hugo
   - theme

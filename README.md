@@ -4,7 +4,9 @@
 
 This is **not** a standalone theme. It imports Dream as a Hugo module dependency and overlays layouts for posts, talks, talk templates, map, videos, and about. End users only import `devrel` — Dream is pulled automatically.
 
-**Live example:** [david.pilato.fr](https://david.pilato.fr/) runs on this theme.
+**Live demos:**
+- Production site: [david.pilato.fr](https://david.pilato.fr/)
+- Theme `exampleSite` on GitHub Pages: [dadoonet.github.io/hugo-theme-devrel](https://dadoonet.github.io/hugo-theme-devrel/)
 
 ```toml
 [[module.imports]]
@@ -206,7 +208,9 @@ Overlays assume Dream’s structure: `{{ define "main" }}`, `dream-grid` / daisy
 
 ## exampleSite
 
-Fictional demo content (not a real speaker’s talks). For a production site using this theme, see [david.pilato.fr](https://david.pilato.fr/).
+Fictional demo content (not a real speaker’s talks). Live at [dadoonet.github.io/hugo-theme-devrel](https://dadoonet.github.io/hugo-theme-devrel/). For a production site using this theme, see [david.pilato.fr](https://david.pilato.fr/).
+
+A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`. One-time setup: repo **Settings → Pages → Source = GitHub Actions**.
 
 ```sh
 cd exampleSite

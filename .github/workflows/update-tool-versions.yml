@@ -53,7 +53,7 @@ jobs:
           cat .github/versions.env
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ github.token }}
           commit-message: "chore(ci): bump tool versions (Hugo ${{ steps.latest.outputs.hugo }}, Go ${{ steps.latest.outputs.go }}, Node ${{ steps.latest.outputs.node }})"

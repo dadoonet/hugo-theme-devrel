@@ -172,7 +172,7 @@ hugo new talks/templates/my-talk/index.md
 Ship these `_index.md` files (also in `exampleSite/`):
 
 | Path                                | Front matter          |
-| ----------------------------------- | --------------------- |
+|-------------------------------------|-----------------------|
 | `content/talks/all/_index.md`       | `layout: "all"`       |
 | `content/talks/map/_index.md`       | `layout: "map"`       |
 | `content/talks/videos/_index.md`    | `layout: "videos"`    |
@@ -193,7 +193,7 @@ The About layout lists socials, then each `*.md` section (except `index.md`) by 
 ## Params reference
 
 | Param                                | Role                                                 |
-| ------------------------------------ | ---------------------------------------------------- |
+|--------------------------------------|------------------------------------------------------|
 | `params.author` / `params.avatar`    | Default speaker identity (archetypes + fallbacks)    |
 | `params.talks.pdf_base_url`          | Prefix for talk `pdf:` paths; empty = local URLs     |
 | `params.search.enabled`              | Pagefind UI (`/search` + Ctrl/Cmd+K); default `true` |
@@ -214,12 +214,12 @@ A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (
 
 ### Keeping CI tools up to date
 
-| What                               | How                                                                                                                                      |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| GitHub Actions (`actions/*`, etc.) | [Dependabot](.github/dependabot.yml) (weekly)                                                                                            |
-| `pagefind` (npm)                   | Dependabot on `exampleSite/` (weekly)                                                                                                    |
-| Go modules (Dream, …)              | Dependabot on `/` and `exampleSite/` (weekly)                                                                                            |
-| Hugo / Go / Node version pins      | [`.github/versions.env`](.github/versions.env), bumped by [update-tool-versions](.github/workflows/update-tool-versions.yml) (weekly PR) |
+| What                    | How                                                                   |
+|-------------------------|-----------------------------------------------------------------------|
+| GitHub Actions          | Dependabot (`.github/dependabot.yml`), weekly                         |
+| `pagefind` (npm)        | Dependabot on `exampleSite/`, weekly                                  |
+| Go modules (Dream, ...) | Dependabot on `/` and `exampleSite/`, weekly                          |
+| Hugo / Go / Node pins   | `.github/versions.env` via `update-tool-versions` workflow, weekly PR |
 
 Dependabot cannot rewrite arbitrary `HUGO_VERSION=` strings in workflows; those pins are centralized in `versions.env` and updated by the scheduled workflow above.
 

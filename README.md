@@ -6,7 +6,7 @@ This is **not** a standalone theme. It imports Dream as a Hugo module dependency
 
 **Live demos:**
 - Production site: [david.pilato.fr](https://david.pilato.fr/)
-- Theme `exampleSite` on GitHub Pages: [dadoonet.github.io/hugo-theme-devrel](https://dadoonet.github.io/hugo-theme-devrel/)
+- Theme `exampleSite` on GitHub Pages: [devrel.hugo.pilato.fr](https://devrel.hugo.pilato.fr/)
 
 ```toml
 [[module.imports]]
@@ -208,9 +208,16 @@ Overlays assume Dream’s structure: `{{ define "main" }}`, `dream-grid` / daisy
 
 ## exampleSite
 
-Fictional demo content (not a real speaker’s talks). Live at [dadoonet.github.io/hugo-theme-devrel](https://dadoonet.github.io/hugo-theme-devrel/). For a production site using this theme, see [david.pilato.fr](https://david.pilato.fr/).
+Fictional demo content (not a real speaker’s talks). Live at [devrel.hugo.pilato.fr](https://devrel.hugo.pilato.fr/). For a production site using this theme, see [david.pilato.fr](https://david.pilato.fr/).
 
-A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`. One-time setup: repo **Settings → Pages → Source = GitHub Actions**.
+A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`.
+
+**One-time Pages + DNS setup** (needed because `david.pilato.fr` is already the custom domain of the user site `dadoonet.github.io`, which would otherwise redirect project URLs to a 404):
+
+1. DNS: `CNAME` `devrel.hugo.pilato.fr` → `dadoonet.github.io`
+2. Repo **Settings → Pages → Source = GitHub Actions**
+3. Repo **Settings → Pages → Custom domain** = `devrel.hugo.pilato.fr`, then enable **Enforce HTTPS**
+4. Confirm `exampleSite/static/CNAME` contains `devrel.hugo.pilato.fr` (shipped in this repo)
 
 ### Keeping CI tools up to date
 

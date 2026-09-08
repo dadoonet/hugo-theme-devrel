@@ -10,13 +10,11 @@ conference:
   longitude: "4.402464"
 authors:
   - author: "Alex Rivera"
-    avatar: "about/alex.svg"
 date: 2025-11-08
 talk-lang: en
 nolastmod: true
 draft: false
 talk: "Observability for humans"
-cover: cover.svg
 attendees: 180
 links:
   - title: "OpenTelemetry"

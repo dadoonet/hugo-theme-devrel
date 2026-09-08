@@ -1,0 +1,32 @@
+{{/*
+  Resolve an author avatar path.
+
+  Lookup order:
+    1. Explicit avatar (front matter)
+    2. Site author name → params.avatar
+    3. static/speakers/firstname_lastname.{avif,svg,webp,png,jpg,jpeg}
+    4. static/about/firstname_lastname.{avif,svg,webp,png,jpg,jpeg}
+
+  Expected context: dict "name" "avatar"
+  Returns a site-relative path string, or "".
+*/}}
+{{- $avatar := .avatar | default "" -}}
+{{- $name := .name | default "" -}}
+{{- if not $avatar -}}
+  {{- if or (not $name) (and site.Params.author (eq (lower $name) (lower site.Params.author))) -}}
+    {{- $avatar = site.Params.avatar | default "" -}}
+  {{- else -}}
+    {{- $slug := $name | lower | replaceRE "[^a-z0-9]+" "_" | replaceRE "^_|_$" "" -}}
+    {{- range $dir := slice "speakers" "about" -}}
+      {{- range $ext := slice "avif" "svg" "webp" "png" "jpg" "jpeg" -}}
+        {{- if not $avatar -}}
+          {{- $rel := printf "%s/%s.%s" $dir $slug $ext -}}
+          {{- if fileExists (printf "static/%s" $rel) -}}
+            {{- $avatar = $rel -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $avatar -}}

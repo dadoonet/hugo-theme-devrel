@@ -1,20 +1,16 @@
 {{/* Emit Pagefind image metadata for search results (absolute URLs). */}}
 {{- $src := "" -}}
-{{- $coverParam := or .Params.cover .Params.Cover -}}
-{{- if $coverParam -}}
-  {{- with .Resources.GetMatch $coverParam -}}
-    {{- $src = .Permalink -}}
-  {{- else -}}
+{{- $cover := partial "cover-resource.html" . -}}
+{{- if $cover -}}
+  {{- $src = $cover.Permalink -}}
+{{- else -}}
+  {{- $coverParam := or .Params.cover .Params.Cover -}}
+  {{- if $coverParam -}}
     {{- if or (hasPrefix $coverParam "http://") (hasPrefix $coverParam "https://") (hasPrefix $coverParam "//") -}}
       {{- $src = $coverParam -}}
     {{- else -}}
       {{- $src = ($coverParam | absURL) -}}
     {{- end -}}
-  {{- end -}}
-{{- end -}}
-{{- if not $src -}}
-  {{- with .Resources.GetMatch "cover.*" -}}
-    {{- $src = .Permalink -}}
   {{- end -}}
 {{- end -}}
 {{- if and (not $src) .Params.youtube -}}

@@ -4,7 +4,6 @@ layout: "template"
 talk: "Observability for humans"
 nolastmod: true
 draft: false
-cover: cover.svg
 
 versions:
   - label: "EN"

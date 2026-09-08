@@ -2,14 +2,12 @@
 title: "Surviving CFP season without burning out"
 description: "A repeatable checklist for Call for Papers: abstract templates, reuse, and saying no."
 author: "Alex Rivera"
-avatar: "about/alex.svg"
 tags:
   - speaking
   - cfp
   - community
 categories:
   - speaker
-cover: cover.svg
 date: 2025-09-12
 nolastmod: true
 draft: false

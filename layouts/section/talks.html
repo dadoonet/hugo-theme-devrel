@@ -415,12 +415,7 @@
       <div class="featured-grid">
         {{ range $index, $talk := $recentTalks }}
         <a href="{{ $talk.RelPermalink }}" class="featured-card{{ if eq $index 0 }} featured-main{{ end }}">
-          {{ $cover := "" }}
-          {{ if $talk.Params.cover }}
-            {{ $cover = $talk.Resources.GetMatch $talk.Params.cover }}
-          {{ else }}
-            {{ $cover = $talk.Resources.GetMatch "cover.*" }}
-          {{ end }}
+          {{ $cover := partial "cover-resource.html" $talk }}
           {{ if $cover }}
           <img src="{{ $cover.RelPermalink }}" alt="{{ $talk.Title }}" loading="lazy" />
           {{ else }}
@@ -538,7 +533,7 @@
         <a href="{{ .RelPermalink }}#video" class="video-card">
           {{/* Try to get YouTube thumbnail */}}
           {{ $youtubeId := .Params.youtube }}
-          {{ $cover := .Resources.GetMatch .Params.cover }}
+          {{ $cover := partial "cover-resource.html" . }}
           {{ if $youtubeId }}
           <img src="https://img.youtube.com/vi/{{ $youtubeId }}/maxresdefault.jpg" alt="{{ .Title }}" loading="lazy" />
           {{ else if $cover }}
@@ -603,13 +598,7 @@
           {{ $displayTitle = $firstVersion.title }}
         {{ end }}
 
-        {{/* Cover image detection */}}
-        {{ $cover := "" }}
-        {{ if $template.Params.cover }}
-          {{ $cover = $template.Resources.GetMatch $template.Params.cover }}
-        {{ else }}
-          {{ $cover = $template.Resources.GetMatch "cover.*" }}
-        {{ end }}
+        {{ $cover := partial "cover-resource.html" $template }}
 
         <a href="{{ $template.RelPermalink }}" class="template-preview-card">
           {{ if $cover }}

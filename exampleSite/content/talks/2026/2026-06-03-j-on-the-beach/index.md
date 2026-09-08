@@ -10,7 +10,6 @@ conference:
   longitude: "-4.421399"
 authors:
   - author: "Alex Rivera"
-    avatar: "about/alex.svg"
   - author: "Jordan Blake"
     avatar: "speakers/jordan.svg"
     link: "https://example.org/jordan"
@@ -19,7 +18,6 @@ talk-lang: en
 nolastmod: true
 draft: false
 talk: "Communities that last"
-cover: cover.svg
 attendees: 120
 links:
   - title: "Meetup organizer handbook (example)"
@@ -27,4 +25,4 @@ links:
     description: "Fictional resource card"
 ---
 
-A two-speaker session (Alex + Jordan) so the example site exercises the multi-author partial: avatars, optional profile links, and a talk that is not a solo keynote.
+A two-speaker session (Alex + Jordan). Alex has no `avatar:` — the theme uses `params.avatar`. Jordan’s file is `speakers/jordan.svg` rather than `speakers/jordan_blake.svg`, so that entry sets `avatar:` to show the override.

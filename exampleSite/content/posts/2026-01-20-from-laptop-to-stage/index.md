@@ -2,7 +2,6 @@
 title: "From laptop to stage: rehearsing a demo that survives Wi-Fi"
 description: "How to turn a local demo into something you can present when the venue network has other plans."
 author: "Alex Rivera"
-avatar: "about/alex.svg"
 tags:
   - speaking
   - demos
@@ -11,7 +10,6 @@ categories:
   - speaker
 series:
   - on the road
-cover: cover.svg
 date: 2026-01-20
 nolastmod: true
 draft: false

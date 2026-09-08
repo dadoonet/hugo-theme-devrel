@@ -231,7 +231,7 @@
         <a href="{{ .RelPermalink }}#video" class="video-card">
           {{/* Get YouTube thumbnail */}}
           {{ $youtubeId := .Params.youtube }}
-          {{ $cover := .Resources.GetMatch .Params.cover }}
+          {{ $cover := partial "cover-resource.html" . }}
           {{ if $youtubeId }}
           <img src="https://img.youtube.com/vi/{{ $youtubeId }}/maxresdefault.jpg" alt="{{ .Title }}" loading="lazy" />
           {{ else if $cover }}

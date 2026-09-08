@@ -79,9 +79,17 @@
       </header>
 
       <section id="dream-single-post-content" itemprop="articleBody">
-        {{ if and .Params.Cover site.Params.showSummaryCoverInPost }}
+        {{ $cover := partial "cover-resource.html" . }}
+        {{ if and $cover site.Params.showSummaryCoverInPost }}
           <figure>
-            <img class="z-30" src="{{ .Params.Cover }}" alt="{{ .Title }}" />
+            <img class="z-30" src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" />
+            {{ with .Params.covercaption }}
+              <figcaption class="text-sm italic text-center mt-2">{{ . }}</figcaption>
+            {{ end }}
+          </figure>
+        {{ else if and .Params.cover site.Params.showSummaryCoverInPost }}
+          <figure>
+            <img class="z-30" src="{{ .Params.cover }}" alt="{{ .Title }}" />
             {{ with .Params.covercaption }}
               <figcaption class="text-sm italic text-center mt-2">{{ . }}</figcaption>
             {{ end }}

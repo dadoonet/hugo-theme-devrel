@@ -4,7 +4,6 @@ layout: "template"
 talk: "Search that scales"
 nolastmod: true
 draft: false
-cover: cover.svg
 
 versions:
   - label: "EN"

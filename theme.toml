@@ -1,4 +1,4 @@
-name = "devrel"
+name = "Devrel (talks and posts)"
 license = "MIT"
 licenselink = "https://github.com/dadoonet/hugo-theme-devrel/blob/main/LICENSE"
 description = "DevRel overlay for the Dream Hugo theme — talks, posts, map, videos, Pagefind search, about"

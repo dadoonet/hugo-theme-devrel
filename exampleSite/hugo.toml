@@ -31,7 +31,14 @@ defaultContentLanguage = "en"
   siteStartYear = 2024
   favicon = "favicon.ico"
   rss = true
+  lightTheme = "emerald"
+  darkTheme = "forest"
+  stickyNav = true
+  noDefaultSummaryCover = true
+  showTableOfContents = true
+  showSummaryCoverInPost = true
   reorderNavItems = ["search", "posts", "talks", "about_me"]
+  collapseNavItems = ["categories", "tags", "rss"]
 
   [params.talks]
     pdf_base_url = ""

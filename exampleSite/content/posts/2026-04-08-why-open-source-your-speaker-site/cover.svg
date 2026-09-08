@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#3f2e15"/>
+  <circle cx="1400" cy="-40" r="380" fill="#fbbf24" fill-opacity="0.35"/>
+  <circle cx="1280" cy="980" r="320" fill="#fbbf24" fill-opacity="0.25"/>
+  <rect x="80" y="80" width="88" height="10" rx="5" fill="#fbbf24"/>
+  <text x="80" y="150" fill="#fbbf24" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" letter-spacing="4" font-weight="600">BLOG</text>
+  <text x="80" y="250" fill="#f8fafc" font-family="ui-sans-serif, system-ui, sans-serif" font-size="56" font-weight="700">Open-source your</text><text x="80" y="322" fill="#f8fafc" font-family="ui-sans-serif, system-ui, sans-serif" font-size="56" font-weight="700">speaker site</text>
+  <text x="80" y="820" fill="#f8fafc" fill-opacity="0.7" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22">Alex Rivera · hugo-theme-devrel</text>
+</svg>

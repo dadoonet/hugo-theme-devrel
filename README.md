@@ -8,6 +8,8 @@ This is **not** a standalone theme. It imports Dream as a Hugo module dependency
 - Production site: [david.pilato.fr](https://david.pilato.fr/)
 - Theme `exampleSite` on GitHub Pages: [devrel.hugo.pilato.fr](https://devrel.hugo.pilato.fr/)
 
+![Talks page](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/screenshot.png)
+
 ```toml
 [[module.imports]]
   path = "github.com/dadoonet/hugo-theme-devrel"
@@ -26,6 +28,48 @@ Dream is MIT-licensed (Copyright © 2019 Yue Yang). Attribution is preserved in 
 - Full-text search via [Pagefind](https://pagefind.app) Component UI (nav loupe → modal, Cmd/Ctrl+K)
 - Videos listing
 - About page assembled from numbered Markdown sections + `data/socials.toml`
+
+## Screenshots
+
+Captured from the production site [david.pilato.fr](https://david.pilato.fr/) (no browser chrome). Gallery files follow the [Hugo themes](https://github.com/gohugoio/hugoThemesSiteBuilder#media) spec: `images/screenshot.png` is 1500×1000 (3:2) and `images/tn.png` is 900×600 (3:2). README images use absolute `raw.githubusercontent.com` URLs so they also render on [themes.gohugo.io](https://themes.gohugo.io/).
+
+### Talks hub — `/talks`
+
+Featured cards for the latest sessions, then a compact archive, video strip, template previews, and a map summary. This is `images/screenshot.png`.
+
+![Talks hub](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/screenshot.png)
+
+### All talks — `/talks/all`
+
+The full archive: decade/year jump links with per-year counts, then a card grid (cover, language, slides/video badges, conference, date). Each year also gets its own Leaflet map so you can see where that year happened, not only the global map.
+
+![All talks](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-all.png)
+
+![All talks — per-year map](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-all-year.png)
+
+### Videos — `/talks/videos`
+
+Only talks with a `youtube:` id. Year navigation (red pills), 16:9 cards with YouTube thumbnails, language flag, event name, and a jump to `#video` on the talk page.
+
+![Videos](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-videos.png)
+
+### Talk templates — `/talks/templates` and `/talks/templates/<slug>`
+
+The catalog lists every recurring topic, sorted by last played date, with “Played N times”. Open a template for stats (first/last, video count), EN/FR tabs, **Talk** vs **Raw** (CFP paste), and the chronological list of conferences.
+
+![Talk templates](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-templates.png)
+
+![One talk template](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talk-template.png)
+
+### Search, a talk page, the global map
+
+| Search (Ctrl/Cmd+K)                                                                            | Talk page                                                                                         |
+|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| ![Search](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/search.png) | ![Talk](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talk-single.png) |
+
+![Talks map](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-map.png)
+
+Also in [`images/`](images/): homepage (`home.png`), About (`about.png`), and the dedicated `/search` page (`search-page.png`).
 
 ## Quick start
 
@@ -171,12 +215,12 @@ hugo new talks/templates/my-talk/index.md
 
 Ship these `_index.md` files (also in `exampleSite/`):
 
-| Path                                | Front matter          |
-|-------------------------------------|-----------------------|
-| `content/talks/all/_index.md`       | `layout: "all"`       |
-| `content/talks/map/_index.md`       | `layout: "map"`       |
-| `content/talks/videos/_index.md`    | `layout: "videos"`    |
-| `content/talks/templates/_index.md` | `layout: "templates"` |
+| Path                                | Front matter          | What it shows                                        |
+|-------------------------------------|-----------------------|------------------------------------------------------|
+| `content/talks/all/_index.md`       | `layout: "all"`       | Every talk, grouped by year, plus a map **per year** |
+| `content/talks/map/_index.md`       | `layout: "map"`       | One global map of all talks with coordinates         |
+| `content/talks/videos/_index.md`    | `layout: "videos"`    | Talks that have `youtube:`, year filters, 16:9 cards |
+| `content/talks/templates/_index.md` | `layout: "templates"` | Recurring topics sorted by last played date          |
 
 ### About
 
@@ -208,7 +252,18 @@ Overlays assume Dream’s structure: `{{ define "main" }}`, `dream-grid` / daisy
 
 ## exampleSite
 
-Fictional demo content (not a real speaker’s talks). Live at [devrel.hugo.pilato.fr](https://devrel.hugo.pilato.fr/). For a production site using this theme, see [david.pilato.fr](https://david.pilato.fr/).
+Fictional demo content for **Alex Rivera** (not a real speaker). Live at [devrel.hugo.pilato.fr](https://devrel.hugo.pilato.fr/). For a production site using this theme, see [david.pilato.fr](https://david.pilato.fr/).
+
+The example site ships enough pages to exercise every layout:
+
+| Kind       | What is in `exampleSite/`                                                                                           |
+|------------|---------------------------------------------------------------------------------------------------------------------|
+| Posts      | 4 page bundles with covers (`hello-devrel`, CFP season, demo rehearsal, why open-source a speaker site)             |
+| Talks      | 7 sessions across Lyon, Antwerp, Brussels, London, Málaga, Oslo, and online                                         |
+| Templates  | 3 recurring topics (`Search that scales`, `Observability for humans`, `Communities that last`) with EN/FR abstracts |
+| Videos     | 2 talks with a sample YouTube id so `/talks/videos/` is not empty                                                   |
+| About      | Numbered sections (`10-`, `20-`, `30-`) plus `data/socials.toml`                                                    |
+| Co-speaker | One talk lists Jordan Blake next to Alex                                                                            |
 
 A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`.
 

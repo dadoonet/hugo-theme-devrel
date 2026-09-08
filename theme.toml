@@ -5,7 +5,7 @@ description = "DevRel overlay for the Dream Hugo theme — talks, posts, map, vi
 homepage = "https://github.com/dadoonet/hugo-theme-devrel"
 demosite = "https://devrel.hugo.pilato.fr"
 
-tags = ["blog", "devrel", "talks", "speaker", "dream", "overlay"]
+tags = ["blog", "portfolio", "dark mode", "talks", "videos", "devrel"]
 features = [
   "Talks & templates",
   "Talks map",

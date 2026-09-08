@@ -33,19 +33,43 @@ Dream is MIT-licensed (Copyright © 2019 Yue Yang). Attribution is preserved in 
 
 Captured from the production site [david.pilato.fr](https://david.pilato.fr/) (no browser chrome). Gallery files follow the [Hugo themes](https://github.com/gohugoio/hugoThemesSiteBuilder#media) spec: `images/screenshot.png` is 1500×1000 (3:2) and `images/tn.png` is 900×600 (3:2). README images use absolute `raw.githubusercontent.com` URLs so they also render on [themes.gohugo.io](https://themes.gohugo.io/).
 
-| Talks | Search (Ctrl/Cmd+K) |
-| ----- | ------------------- |
-| ![Talks](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/screenshot.png) | ![Search](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/search.png) |
+### Talks hub — `/talks`
 
-| Talk page | Talks map |
-| --------- | --------- |
-| ![Talk](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talk-single.png) | ![Map](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-map.png) |
+Featured cards for the latest sessions, then a compact archive, video strip, template previews, and a map summary. This is `images/screenshot.png`.
 
-| Videos | Talk templates |
-| ------ | -------------- |
-| ![Videos](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-videos.png) | ![Templates](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-templates.png) |
+![Talks hub](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/screenshot.png)
 
-Also in [`images/`](images/): homepage (`home.png`), a talk template (`talk-template.png`), About (`about.png`), and the dedicated `/search` page (`search-page.png`).
+### All talks — `/talks/all`
+
+The full archive: decade/year jump links with per-year counts, then a card grid (cover, language, slides/video badges, conference, date). Each year also gets its own Leaflet map so you can see where that year happened, not only the global map.
+
+![All talks](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-all.png)
+
+![All talks — per-year map](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-all-year.png)
+
+### Videos — `/talks/videos`
+
+Only talks with a `youtube:` id. Year navigation (red pills), 16:9 cards with YouTube thumbnails, language flag, event name, and a jump to `#video` on the talk page.
+
+![Videos](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-videos.png)
+
+### Talk templates — `/talks/templates` and `/talks/templates/<slug>`
+
+The catalog lists every recurring topic, sorted by last played date, with “Played N times”. Open a template for stats (first/last, video count), EN/FR tabs, **Talk** vs **Raw** (CFP paste), and the chronological list of conferences.
+
+![Talk templates](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-templates.png)
+
+![One talk template](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talk-template.png)
+
+### Search, a talk page, the global map
+
+| Search (Ctrl/Cmd+K) | Talk page |
+| ------------------- | --------- |
+| ![Search](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/search.png) | ![Talk](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talk-single.png) |
+
+![Talks map](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-map.png)
+
+Also in [`images/`](images/): homepage (`home.png`), About (`about.png`), and the dedicated `/search` page (`search-page.png`).
 
 ## Quick start
 
@@ -191,12 +215,12 @@ hugo new talks/templates/my-talk/index.md
 
 Ship these `_index.md` files (also in `exampleSite/`):
 
-| Path                                | Front matter          |
-|-------------------------------------|-----------------------|
-| `content/talks/all/_index.md`       | `layout: "all"`       |
-| `content/talks/map/_index.md`       | `layout: "map"`       |
-| `content/talks/videos/_index.md`    | `layout: "videos"`    |
-| `content/talks/templates/_index.md` | `layout: "templates"` |
+| Path                                | Front matter          | What it shows |
+|-------------------------------------|-----------------------|---------------|
+| `content/talks/all/_index.md`       | `layout: "all"`       | Every talk, grouped by year, plus a map **per year** |
+| `content/talks/map/_index.md`       | `layout: "map"`       | One global map of all talks with coordinates |
+| `content/talks/videos/_index.md`    | `layout: "videos"`    | Talks that have `youtube:`, year filters, 16:9 cards |
+| `content/talks/templates/_index.md` | `layout: "templates"` | Recurring topics sorted by last played date |
 
 ### About
 

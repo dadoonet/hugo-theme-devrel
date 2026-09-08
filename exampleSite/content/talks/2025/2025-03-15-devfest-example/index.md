@@ -10,13 +10,11 @@ conference:
   longitude: "4.835659"
 authors:
   - author: "Alex Rivera"
-    avatar: "about/alex.svg"
 date: 2025-03-15
 talk-lang: en
 nolastmod: true
 draft: false
 talk: "Search that scales"
-cover: cover.svg
 links:
   - title: "Talk template"
     url: "/talks/templates/search-that-scales/"

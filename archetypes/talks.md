@@ -10,14 +10,14 @@ conference:
 #  longitude: ""
 authors:
   - author: '{{ site.Params.author }}'
-    avatar: '{{ site.Params.avatar }}'
+#   avatar: '{{ site.Params.avatar }}'  # optional; inferred from author name
 #   link: "https://www.linkedin.com/in/username"
 date: '{{ substr .File.ContentBaseName 0 10 }}'
 talk-lang: en # fr or en
 nolastmod: true
 draft: true
 pdf: "{{ substr .File.ContentBaseName 0 4 }}/{{ .File.ContentBaseName }}.pdf"
-#cover: "cover.avif"
+#cover: "hero.avif"  # optional; a cover.* file in the bundle is used automatically
 
 # talk: Talk template name (groups occurrences + links to /talks/templates/<slug>)
 

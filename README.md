@@ -152,7 +152,7 @@ content/posts/YYYY-MM-DD-slug/index.md
 hugo new posts/YYYY-MM-DD-something-awesome/index.md
 ```
 
-Archetypes fill `author` / `avatar` from `site.Params.author` / `site.Params.avatar`.
+Archetypes fill `author` from `site.Params.author`. `avatar` and `cover` are optional: see inferred fields below.
 
 ### Talks
 
@@ -178,16 +178,19 @@ conference:
   latitude: "48.856614"    # optional — used by the map
   longitude: "2.352222"
 authors:
-  - author: "Your Name"
-    avatar: "/about/you.avif"
+  - author: "Your Name"            # avatar inferred; set avatar: only to override
 date: YYYY-MM-DD
 talk-lang: en
 pdf: "YYYY/YYYY-MM-DD-event.pdf"   # relative to params.talks.pdf_base_url, or site-relative if empty
 talk: "Topic Name"                 # groups occurrences + links to template
 youtube: "VIDEO_ID"                # optional
 links: []                          # optional resources
-social: []                         # optional X / Bluesky / LinkedIn URLs
+social: []                         # optional X / Bluesky / LinkedIn post URLs
 ```
+
+Drop `cover:` when the bundle contains `cover.*`. Drop `avatar:` when the speaker is `params.author` (uses `params.avatar`) or when a file exists at `static/speakers/firstname_lastname.{avif,svg,webp,png,jpg,jpeg}`. Set those fields only to use a different filename — `exampleSite` does this on FOSDEM (`cover: hero.svg`) and for Jordan Blake (`avatar: speakers/jordan.svg`).
+
+`social` is a list of public post URLs. The theme embeds X, Bluesky, and LinkedIn (see JavaZone in `exampleSite`).
 
 ### Talk templates
 
@@ -256,14 +259,15 @@ Fictional demo content for **Alex Rivera** (not a real speaker). Live at [devrel
 
 The example site ships enough pages to exercise every layout:
 
-| Kind       | What is in `exampleSite/`                                                                                           |
-|------------|---------------------------------------------------------------------------------------------------------------------|
-| Posts      | 4 page bundles with covers (`hello-devrel`, CFP season, demo rehearsal, why open-source a speaker site)             |
-| Talks      | 7 sessions across Lyon, Antwerp, Brussels, London, Málaga, Oslo, and online                                         |
-| Templates  | 3 recurring topics (`Search that scales`, `Observability for humans`, `Communities that last`) with EN/FR abstracts |
-| Videos     | 2 talks with a sample YouTube id so `/talks/videos/` is not empty                                                   |
-| About      | Numbered sections (`10-`, `20-`, `30-`) plus `data/socials.toml`                                                    |
-| Co-speaker | One talk lists Jordan Blake next to Alex                                                                            |
+| Kind       | What is in `exampleSite/`                                                                                      |
+|------------|----------------------------------------------------------------------------------------------------------------|
+| Posts      | 4 page bundles; `cover.*` auto-detected (no `cover:` or `avatar:` in front matter)                             |
+| Talks      | 7 sessions; most omit inferred fields; FOSDEM sets `cover: hero.svg` as an override                            |
+| Templates  | 3 recurring topics (`Search that scales`, `Observability for humans`, `Communities that last`) with EN/FR copy |
+| Videos     | 2 talks with YouTube ids so `/talks/videos/` is not empty                                                      |
+| Social     | JavaZone lists public X, Bluesky, and LinkedIn URLs for the three embed types                                  |
+| About      | Numbered sections (`10-`, `20-`, `30-`) plus `data/socials.toml`                                               |
+| Co-speaker | J on the Beach; Jordan sets `avatar: speakers/jordan.svg` (not `firstname_lastname`)                           |
 
 A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`.
 

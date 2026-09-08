@@ -63,8 +63,8 @@ The catalog lists every recurring topic, sorted by last played date, with “Pla
 
 ### Search, a talk page, the global map
 
-| Search (Ctrl/Cmd+K) | Talk page |
-| ------------------- | --------- |
+| Search (Ctrl/Cmd+K)                                                                            | Talk page                                                                                         |
+|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
 | ![Search](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/search.png) | ![Talk](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talk-single.png) |
 
 ![Talks map](https://raw.githubusercontent.com/dadoonet/hugo-theme-devrel/main/images/talks-map.png)
@@ -215,12 +215,12 @@ hugo new talks/templates/my-talk/index.md
 
 Ship these `_index.md` files (also in `exampleSite/`):
 
-| Path                                | Front matter          | What it shows |
-|-------------------------------------|-----------------------|---------------|
+| Path                                | Front matter          | What it shows                                        |
+|-------------------------------------|-----------------------|------------------------------------------------------|
 | `content/talks/all/_index.md`       | `layout: "all"`       | Every talk, grouped by year, plus a map **per year** |
-| `content/talks/map/_index.md`       | `layout: "map"`       | One global map of all talks with coordinates |
+| `content/talks/map/_index.md`       | `layout: "map"`       | One global map of all talks with coordinates         |
 | `content/talks/videos/_index.md`    | `layout: "videos"`    | Talks that have `youtube:`, year filters, 16:9 cards |
-| `content/talks/templates/_index.md` | `layout: "templates"` | Recurring topics sorted by last played date |
+| `content/talks/templates/_index.md` | `layout: "templates"` | Recurring topics sorted by last played date          |
 
 ### About
 
@@ -256,14 +256,14 @@ Fictional demo content for **Alex Rivera** (not a real speaker). Live at [devrel
 
 The example site ships enough pages to exercise every layout:
 
-| Kind | What is in `exampleSite/` |
-| ---- | ------------------------- |
-| Posts | 4 page bundles with covers (`hello-devrel`, CFP season, demo rehearsal, why open-source a speaker site) |
-| Talks | 7 sessions across Lyon, Antwerp, Brussels, London, Málaga, Oslo, and online |
-| Templates | 3 recurring topics (`Search that scales`, `Observability for humans`, `Communities that last`) with EN/FR abstracts |
-| Videos | 2 talks with a sample YouTube id so `/talks/videos/` is not empty |
-| About | Numbered sections (`10-`, `20-`, `30-`) plus `data/socials.toml` |
-| Co-speaker | One talk lists Jordan Blake next to Alex |
+| Kind       | What is in `exampleSite/`                                                                                           |
+|------------|---------------------------------------------------------------------------------------------------------------------|
+| Posts      | 4 page bundles with covers (`hello-devrel`, CFP season, demo rehearsal, why open-source a speaker site)             |
+| Talks      | 7 sessions across Lyon, Antwerp, Brussels, London, Málaga, Oslo, and online                                         |
+| Templates  | 3 recurring topics (`Search that scales`, `Observability for humans`, `Communities that last`) with EN/FR abstracts |
+| Videos     | 2 talks with a sample YouTube id so `/talks/videos/` is not empty                                                   |
+| About      | Numbered sections (`10-`, `20-`, `30-`) plus `data/socials.toml`                                                    |
+| Co-speaker | One talk lists Jordan Blake next to Alex                                                                            |
 
 A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`.
 

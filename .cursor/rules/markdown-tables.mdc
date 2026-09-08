@@ -1,0 +1,30 @@
+---
+description: Markdown tables must be column-aligned with padded cells
+alwaysApply: true
+---
+
+# Markdown tables
+
+Every Markdown/GFM table MUST be visually aligned in the source:
+
+- Pad every cell with spaces so columns line up in a monospace editor.
+- The separator row (`---`) must be the same width as the padded cells (including the spaces around cell text).
+- Do not leave ragged tables like `| Foo | Bar |` on one row and `| something long | x |` on the next.
+
+Example:
+
+```markdown
+| Kind       | What                          |
+|------------|-------------------------------|
+| Posts      | Four page bundles with covers |
+| Co-speaker | One talk lists Jordan Blake   |
+```
+
+Not:
+
+```markdown
+| Kind | What |
+| ---- | ---- |
+| Posts | Four page bundles with covers |
+| Co-speaker | One talk lists Jordan Blake |
+```

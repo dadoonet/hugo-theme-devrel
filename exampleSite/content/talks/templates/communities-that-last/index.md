@@ -4,7 +4,6 @@ layout: "template"
 talk: "Communities that last"
 nolastmod: true
 draft: false
-cover: cover.svg
 
 versions:
   - label: "EN"

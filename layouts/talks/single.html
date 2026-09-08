@@ -115,15 +115,10 @@
         {{ partial "pdf.html" (dict "ctx" $ "pdf_url" .Params.pdf) }}
         </div>
       {{ else }}
-        {{ $cover := "" }}
-        {{ if .Params.cover }}
-          {{ $cover = .Resources.GetMatch .Params.cover }}
-        {{ else }}
-          {{ $cover = .Resources.GetMatch "cover.*" }}
-        {{ end }}
+        {{ $cover := partial "cover-resource.html" . }}
         {{ if and $cover site.Params.showSummaryCoverInPost }}
         <figure>
-          <img class="z-30" src="{{ $cover }}" alt="{{ .Title }}" />
+          <img class="z-30" src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" />
           {{ with .Params.covercaption }}
             <figcaption class="text-sm italic text-center mt-2">{{ . }}</figcaption>
           {{ end }}

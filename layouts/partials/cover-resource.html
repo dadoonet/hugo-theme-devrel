@@ -1,0 +1,22 @@
+{{/*
+  Resolve a page-bundle cover image.
+
+  Lookup order:
+    1. params.cover as a page resource (any filename)
+    2. a file matching cover.* in the bundle
+
+  Returns the resource, or an empty string.
+*/}}
+{{- $page := . -}}
+{{- $cover := "" -}}
+{{- with $page.Params.cover -}}
+  {{- with $page.Resources.GetMatch . -}}
+    {{- $cover = . -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $cover -}}
+  {{- with $page.Resources.GetMatch "cover.*" -}}
+    {{- $cover = . -}}
+  {{- end -}}
+{{- end -}}
+{{- return $cover -}}

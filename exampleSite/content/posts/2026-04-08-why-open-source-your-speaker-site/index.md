@@ -2,14 +2,12 @@
 title: "Why I open-sourced my speaker site (fictionally)"
 description: "Why a Developer Advocate might extract talks, posts, and search into a reusable Hugo theme."
 author: "Alex Rivera"
-avatar: "about/alex.svg"
 tags:
   - hugo
   - opensource
   - community
 categories:
   - meta
-cover: cover.svg
 date: 2026-04-08
 nolastmod: true
 draft: false
@@ -23,7 +21,7 @@ Speaker sites rot in the same way slide decks rot: a custom layout, a private co
 
 This example site is intentionally fake so you can see every content type without cloning someone else’s biography:
 
-- Blog posts with covers, tags, and an optional series
+- Blog posts with tags, an optional series, and auto-detected `cover.*` files
 - Talks in several cities (for the map) and online (for the 🌎 icon)
 - Recurring topics grouped by `talk:`
 - Multilingual templates (`versions:`)

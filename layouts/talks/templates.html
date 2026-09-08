@@ -197,13 +197,7 @@
         {{ $displayAbstract = $firstVersion.abstract }}
       {{ end }}
 
-      {{/* Cover image detection */}}
-      {{ $cover := "" }}
-      {{ if $template.Params.cover }}
-        {{ $cover = $template.Resources.GetMatch $template.Params.cover }}
-      {{ else }}
-        {{ $cover = $template.Resources.GetMatch "cover.*" }}
-      {{ end }}
+      {{ $cover := partial "cover-resource.html" $template }}
 
       <a href="{{ $template.RelPermalink }}" class="template-card">
         {{ if $cover }}

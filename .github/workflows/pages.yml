@@ -6,6 +6,7 @@
 # 2. Repo Settings → Pages → Source = GitHub Actions
 # 3. Repo Settings → Pages → Custom domain = devrel.hugo.pilato.fr (then Enforce HTTPS)
 # Tool pins: .github/versions.env (Dependabot: Actions/npm/gomod; pins: update-tool-versions.yml)
+# Pull requests: Netlify deploy preview only (netlify.toml). This workflow does not run on PRs.
 
 name: Deploy exampleSite
 
@@ -13,7 +14,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -48,6 +48,9 @@ jobs:
           echo "HUGO_VERSION=$HUGO_VERSION" >> "$GITHUB_ENV"
           echo "GO_VERSION=$GO_VERSION" >> "$GITHUB_ENV"
           echo "NODE_VERSION=$NODE_VERSION" >> "$GITHUB_ENV"
+
+      - name: Check Netlify pins match versions.env
+        run: bash .github/scripts/sync-netlify-pins.sh check
 
       - name: Setup Pages
         id: pages
@@ -108,13 +111,13 @@ jobs:
           bash scripts/assert-pagefind-skips-future.sh public
 
       - name: Upload Pages artifact
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
         with:
           path: exampleSite/public
 
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

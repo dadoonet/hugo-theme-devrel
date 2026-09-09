@@ -269,7 +269,7 @@ The example site ships enough pages to exercise every layout:
 | About      | Numbered sections (`10-`, `20-`, `30-`) plus `data/socials.toml`                                               |
 | Co-speaker | J on the Beach; Jordan sets `avatar: speakers/jordan.svg` (not `firstname_lastname`)                           |
 
-A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`.
+A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`. Pull requests are not built there: Netlify serves the deploy preview (`netlify.toml`).
 
 **One-time Pages + DNS setup** (needed because `david.pilato.fr` is already the custom domain of the user site `dadoonet.github.io`, which would otherwise redirect project URLs to a 404):
 
@@ -278,16 +278,22 @@ A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (
 3. Repo **Settings → Pages → Custom domain** = `devrel.hugo.pilato.fr`, then enable **Enforce HTTPS**
 4. Confirm `exampleSite/static/CNAME` contains `devrel.hugo.pilato.fr` (shipped in this repo)
 
+**One-time Netlify setup** (this is the only `exampleSite` build on PRs; same pattern as [david.pilato.fr](https://david.pilato.fr/)):
+
+1. In Netlify: **Add new project → Import an existing project** → GitHub → `dadoonet/hugo-theme-devrel`
+2. Leave build settings to `netlify.toml` (command, publish directory, env)
+3. Deploy. The first production build is skipped on purpose (`ignore = "exit 0"` on `main` and branch deploys). After that, each PR gets a preview URL from the Netlify GitHub App
+
 ### Keeping CI tools up to date
 
-| What                    | How                                                                   |
-|-------------------------|-----------------------------------------------------------------------|
-| GitHub Actions          | Dependabot (`.github/dependabot.yml`), weekly                         |
-| `pagefind` (npm)        | Dependabot on `exampleSite/`, weekly                                  |
-| Go modules (Dream, ...) | Dependabot on `/` and `exampleSite/`, weekly                          |
-| Hugo / Go / Node pins   | `.github/versions.env` via `update-tool-versions` workflow, weekly PR |
+| What                    | How                                                                              |
+|-------------------------|----------------------------------------------------------------------------------|
+| GitHub Actions          | Dependabot (`.github/dependabot.yml`), weekly                                    |
+| `pagefind` (npm)        | Dependabot on `exampleSite/`, weekly                                             |
+| Go modules (Dream, ...) | Dependabot on `/` and `exampleSite/`, weekly                                     |
+| Hugo / Go / Node pins   | `.github/versions.env` and `netlify.toml` via `update-tool-versions`, weekly PR  |
 
-Dependabot cannot rewrite arbitrary `HUGO_VERSION=` strings in workflows; those pins are centralized in `versions.env` and updated by the scheduled workflow above.
+Dependabot cannot rewrite arbitrary `HUGO_VERSION=` strings in workflows; those pins are centralized in `versions.env` (and copied to `netlify.toml`) by the scheduled workflow above.
 
 ```sh
 cd exampleSite

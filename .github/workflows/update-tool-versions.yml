@@ -44,13 +44,17 @@ jobs:
         run: |
           set -euo pipefail
           {
-            echo '# Single source of truth for CI tool pins (Pages workflow + version-bump workflow).'
+            echo '# Single source of truth for CI tool pins (Pages, Netlify, version-bump workflow).'
             echo '# Dependabot does not update these strings — see .github/workflows/update-tool-versions.yml'
+            echo '# netlify.toml copies HUGO_VERSION / GO_VERSION / NODE_VERSION from here.'
             echo "HUGO_VERSION=${HUGO}"
             echo "GO_VERSION=${GO}"
             echo "NODE_VERSION=${NODE}"
           } > .github/versions.env
           cat .github/versions.env
+
+      - name: Sync netlify.toml pins
+        run: bash .github/scripts/sync-netlify-pins.sh write
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
@@ -59,12 +63,12 @@ jobs:
           commit-message: "chore(ci): bump tool versions (Hugo ${{ steps.latest.outputs.hugo }}, Go ${{ steps.latest.outputs.go }}, Node ${{ steps.latest.outputs.node }})"
           title: "chore(ci): bump Hugo ${{ steps.latest.outputs.hugo }} / Go ${{ steps.latest.outputs.go }} / Node ${{ steps.latest.outputs.node }}"
           body: |
-            Automated bump of CI tool pins in `.github/versions.env`.
+            Automated bump of CI tool pins in `.github/versions.env` and `netlify.toml`.
 
-            | Tool | Version |
-            |------|---------|
-            | Hugo (extended) | `${{ steps.latest.outputs.hugo }}` |
-            | Go | `${{ steps.latest.outputs.go }}` |
+            | Tool                    | Version                            |
+            |-------------------------|------------------------------------|
+            | Hugo (extended)         | `${{ steps.latest.outputs.hugo }}` |
+            | Go                      | `${{ steps.latest.outputs.go }}`   |
             | Node (major / LTS line) | `${{ steps.latest.outputs.node }}` |
 
             Dependabot still owns GitHub Actions, npm (`pagefind`), and Go modules.

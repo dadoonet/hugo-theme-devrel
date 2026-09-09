@@ -1,11 +1,13 @@
 {{ define "title" }}
-{{- .Title -}}
+{{ $title := (strings.FirstUpper .Data.Plural) }}
+{{ $translation := T (print "all" $title) }}
+{{ default $title $translation -}}
 {{ end }}
 
 {{ define "main"}}
 
-{{/* Filter out future posts but keep future talks */}}
-{{ $filteredPages := partial "filter-dated-pages.html" (dict "pages" .Pages "keepFutureTalks" true) }}
+{{ $candidates := where site.RegularPages (print ".Params." .Data.Plural) "ne" nil }}
+{{ $filteredPages := partial "filter-dated-pages.html" (dict "pages" $candidates "keepFutureTalks" true) }}
 
 {{ if site.Params.zenMode }}
 <div class="max-w-[65ch] mt-4 mx-auto">
@@ -14,24 +16,21 @@
 {{ end }}
   <div class="md:basis-[200px] lg:basis-[300px] p-4 prose dark:prose-invert">
     <h1 class="text-2xl">
-      {{- .Title -}}
+      {{- $title := T (print "all" (strings.FirstUpper .Data.Plural)) }}
+      {{- default (strings.FirstUpper .Data.Plural) $title -}}
     </h1>
     <p class="text-sm">
-      {{- T "article" (len $filteredPages) -}}
+      {{- if eq (len .Data.Terms) 1 }}
+      {{- default (print "1 " .Data.Singular) (T .Data.Singular 1) }}
+      {{- else }}
+      {{- default (print (len .Data.Terms) " " .Data.Plural) (T .Data.Singular (len .Data.Terms)) }}
+      {{- end -}}
     </p>
     <div class="flex flex-wrap gap-4 mt-6">
-      {{ $title := .Title }}
-
-      {{ range (index site.Taxonomies .Data.Plural).Alphabetical }}
-      {{ if eq .Page.Title $title }}
-      <span class="badge h-6 badge-primary">
-        {{ .Page.Title }}
-      </span>
-      {{ else }}
+      {{ range .Data.Terms.Alphabetical }}
       <a href="{{ .Page.RelPermalink }}" class="badge h-6 no-underline hover:badge-primary">
-        {{ .Page.Title }}
+        {{ .Page.LinkTitle }}
       </a>
-      {{ end }}
       {{ end }}
     </div>
   </div>
@@ -50,13 +49,13 @@
         {{ end }}
       </div>
     {{ else }}
-      <div class="dream-grid">
-        {{ range $paginator.Pages }}
-          <div class="w-full md:w-1/2 lg:w-1/3 p-4 dream-column">
-            {{ .Render "summary" }}
-          </div>
-        {{ end }}
-      </div>
+    <div class="dream-grid">
+      {{ range $paginator.Pages }}
+        <div class="w-full md:w-1/2 lg:w-1/3 p-4 dream-column">
+          {{ .Render "summary" }}
+        </div>
+      {{ end }}
+    </div>
     {{ end }}
 
     {{ if gt $paginator.TotalPages 1 }}
@@ -76,4 +75,3 @@
 {{ end }}
 
 {{ end }}
-

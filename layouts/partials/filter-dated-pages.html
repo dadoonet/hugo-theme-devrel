@@ -1,0 +1,24 @@
+{{- /*
+  Filter a page collection for public listings and feeds.
+
+  With buildFuture, upcoming talks and scheduled posts still get URLs.
+  Future posts stay off lists/RSS until their date. Upcoming talks stay
+  on talks-related surfaces unless keepFutureTalks is false (home RSS).
+
+  In development, the collection is unchanged so local previews match
+  the homepage/archives.
+*/ -}}
+{{- $pages := .pages -}}
+{{- $keepFutureTalks := .keepFutureTalks -}}
+{{- $out := $pages -}}
+{{- if ne hugo.Environment "development" -}}
+  {{- $out = slice -}}
+  {{- range $pages -}}
+    {{- if le .Date now -}}
+      {{- $out = $out | append . -}}
+    {{- else if and $keepFutureTalks (eq .Type "talks") -}}
+      {{- $out = $out | append . -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

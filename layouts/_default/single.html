@@ -40,7 +40,8 @@
   </div>
 
   <div class="lg:col-span-2">
-    <article class="mx-auto prose prose-quoteless dark:prose-invert" id="dream-single-post-main" itemscope itemtype="http://schema.org/Article" data-pagefind-body data-pagefind-filter="section:posts">
+    {{ $pagefindIndex := partial "pagefind-indexable.html" . }}
+    <article class="mx-auto prose prose-quoteless dark:prose-invert" id="dream-single-post-main" itemscope itemtype="http://schema.org/Article" {{ if $pagefindIndex }}data-pagefind-body data-pagefind-filter="section:posts"{{ end }}>
       {{ template "_internal/schema.html" . }}
       {{ partial "pagefind-cover-meta.html" . }}
       {{ partial "pagefind-type-meta.html" . }}

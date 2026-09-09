@@ -61,7 +61,8 @@
 
   {{/* Main content - spans 2 columns */}}
   <div class="lg:col-span-2 min-w-0">
-    <article class="mx-auto prose prose-quoteless dark:prose-invert max-w-none lg:max-w-prose" id="dream-single-post-main" itemscope itemtype="http://schema.org/Article" data-pagefind-body data-pagefind-filter="section:talks">
+    {{ $pagefindIndex := partial "pagefind-indexable.html" . }}
+    <article class="mx-auto prose prose-quoteless dark:prose-invert max-w-none lg:max-w-prose" id="dream-single-post-main" itemscope itemtype="http://schema.org/Article" {{ if $pagefindIndex }}data-pagefind-body data-pagefind-filter="section:talks"{{ end }}>
       {{ template "_internal/schema.html" . }}
       {{ partial "pagefind-cover-meta.html" . }}
       {{ partial "pagefind-type-meta.html" . }}

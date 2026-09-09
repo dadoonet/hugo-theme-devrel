@@ -1,7 +1,7 @@
 # PR deploy previews of exampleSite only.
 # Production stays on GitHub Pages (https://devrel.hugo.pilato.fr/).
 # Keep HUGO_VERSION / GO_VERSION / NODE_VERSION in sync with .github/versions.env
-# (update-tool-versions.yml rewrites both; pages.yml checks they match).
+# (update-tool-versions.yml rewrites both; the Pages workflow checks they match on main).
 
 [build]
   publish = "exampleSite/public"

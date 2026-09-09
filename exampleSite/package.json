@@ -4,6 +4,7 @@
   "scripts": {
     "build": "hugo --minify && npx pagefind --site public",
     "index": "npx pagefind --site public",
+    "test:search": "bash scripts/assert-pagefind-skips-future.sh public",
     "dev": "hugo server"
   },
   "devDependencies": {

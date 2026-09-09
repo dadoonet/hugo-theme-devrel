@@ -261,8 +261,8 @@ The example site ships enough pages to exercise every layout:
 
 | Kind       | What is in `exampleSite/`                                                                                      |
 |------------|----------------------------------------------------------------------------------------------------------------|
-| Posts      | 4 page bundles; `cover.*` auto-detected (no `cover:` or `avatar:` in front matter)                             |
-| Talks      | 7 sessions; most omit inferred fields; FOSDEM sets `cover: hero.svg` as an override                            |
+| Posts      | 5 page bundles; one dated 2099 (generated, not listed or indexed)                                              |
+| Talks      | 8 sessions; one dated 2099 (Upcoming card, not indexed); FOSDEM sets `cover: hero.svg`                         |
 | Templates  | 3 recurring topics (`Search that scales`, `Observability for humans`, `Communities that last`) with EN/FR copy |
 | Videos     | 2 talks with YouTube ids so `/talks/videos/` is not empty                                                      |
 | Social     | JavaZone lists public X, Bluesky, and LinkedIn URLs for the three embed types                                  |
@@ -294,12 +294,13 @@ cd exampleSite
 hugo mod tidy
 hugo --minify
 npx --yes pagefind --site public
+bash scripts/assert-pagefind-skips-future.sh public
 hugo server
 ```
 
 Use a `replace` in `exampleSite/go.mod` pointing at the parent theme while developing.
 
-Pagefind indexes pages marked with `data-pagefind-body` (posts, talks, talk templates, about). Filters: `section:posts`, `section:talks`, `section:templates`, `section:videos`, `section:about`. Cover images (front matter, `cover.*`, or YouTube thumbnail) are exposed as result images. Indexed pages emit `data-pagefind-sort="date:YYYY-MM-DD"`; empty queries (browse / filter alone) sort by date descending, while non-empty queries keep Pagefind relevance scoring. The nav shows a search icon that opens a centered modal; the section filter appears on the same row as the query once you type. Contextual presets apply on `/posts*` and `/talks*` (including templates/videos). A basic `/search` page remains; a richer dedicated search UI may come later.
+Pagefind indexes pages marked with `data-pagefind-body` (posts, talks, talk templates, about). Future-dated posts and talks omit that attribute in production, so `--buildFuture` can still generate their URLs (upcoming talks, scheduled posts) without leaking them in search — the same date filter already used on the homepage, archives, category/tag lists, and RSS. Talk templates and about pages are always indexed. The home RSS omits future talks as well; `/talks/index.xml` still lists upcoming sessions. Filters: `section:posts`, `section:talks`, `section:templates`, `section:videos`, `section:about`. Cover images (front matter, `cover.*`, or YouTube thumbnail) are exposed as result images. Indexed pages emit `data-pagefind-sort="date:YYYY-MM-DD"`; empty queries (browse / filter alone) sort by date descending, while non-empty queries keep Pagefind relevance scoring. The nav shows a search icon that opens a centered modal; the section filter appears on the same row as the query once you type. Contextual presets apply on `/posts*` and `/talks*` (including templates/videos). A basic `/search` page remains; a richer dedicated search UI may come later.
 
 ## License
 

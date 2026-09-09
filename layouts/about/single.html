@@ -2,7 +2,8 @@
 
 {{ define "main" }}
 <div class="mt-8 px-4 max-w-4xl mx-auto">
-  <article class="prose prose-quoteless dark:prose-invert mx-auto" data-pagefind-body data-pagefind-filter="section:about">
+  {{ $pagefindIndex := partial "pagefind-indexable.html" . }}
+  <article class="prose prose-quoteless dark:prose-invert mx-auto" {{ if $pagefindIndex }}data-pagefind-body data-pagefind-filter="section:about"{{ end }}>
     {{ partial "pagefind-type-meta.html" . }}
     {{ partial "pagefind-sort-meta.html" . }}
     <span data-pagefind-meta="title" hidden>{{ .Title }}</span>

@@ -1,0 +1,15 @@
+{{- /*
+  Whether this page should be in the Pagefind index.
+
+  Sites that pass --buildFuture (or set buildFuture) still generate upcoming
+  talks and scheduled posts so they have URLs. Listings already hide future
+  posts; returning false here drops data-pagefind-body so search matches that.
+
+  Talk templates and about pages are always indexed. In development, future
+  content stays searchable so local previews match the homepage/archives.
+*/ -}}
+{{- $index := true -}}
+{{- if and (ne hugo.Environment "development") (in (slice "posts" "talks") .Section) (ne .Params.layout "template") (gt .Date now) -}}
+  {{- $index = false -}}
+{{- end -}}
+{{- return $index -}}

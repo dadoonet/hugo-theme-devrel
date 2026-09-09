@@ -6,6 +6,7 @@
 # 2. Repo Settings → Pages → Source = GitHub Actions
 # 3. Repo Settings → Pages → Custom domain = devrel.hugo.pilato.fr (then Enforce HTTPS)
 # Tool pins: .github/versions.env (Dependabot: Actions/npm/gomod; pins: update-tool-versions.yml)
+# PR deploy previews: netlify.toml (production stays on Pages; Netlify skips main).
 
 name: Deploy exampleSite
 
@@ -48,6 +49,9 @@ jobs:
           echo "HUGO_VERSION=$HUGO_VERSION" >> "$GITHUB_ENV"
           echo "GO_VERSION=$GO_VERSION" >> "$GITHUB_ENV"
           echo "NODE_VERSION=$NODE_VERSION" >> "$GITHUB_ENV"
+
+      - name: Check Netlify pins match versions.env
+        run: bash .github/scripts/sync-netlify-pins.sh check
 
       - name: Setup Pages
         id: pages

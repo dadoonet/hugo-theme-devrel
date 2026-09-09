@@ -1,0 +1,36 @@
+# PR deploy previews of exampleSite only.
+# Production stays on GitHub Pages (https://devrel.hugo.pilato.fr/).
+# Keep HUGO_VERSION / GO_VERSION / NODE_VERSION in sync with .github/versions.env
+# (update-tool-versions.yml rewrites both; pages.yml checks they match).
+
+[build]
+  publish = "exampleSite/public"
+  command = """
+    set -euo pipefail
+    cd exampleSite
+    npm ci
+    hugo mod tidy
+    hugo --gc --minify --baseURL "${DEPLOY_PRIME_URL%/}/"
+    npx pagefind --site public
+    bash scripts/assert-pagefind-skips-future.sh public
+    """
+
+[build.environment]
+  HUGO_VERSION = "0.165.0"
+  HUGO_ENVIRONMENT = "production"
+  HUGO_ENV = "production"
+  NODE_VERSION = "24"
+  GO_VERSION = "1.27.1"
+  TZ = "Europe/Paris"
+
+# Skip production and branch deploys; only pull-request previews are built.
+[context.production]
+  ignore = "exit 0"
+
+[context.branch-deploy]
+  ignore = "exit 0"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

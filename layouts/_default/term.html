@@ -4,9 +4,6 @@
 
 {{ define "main"}}
 
-{{/* Filter out future posts but keep future talks */}}
-{{ $filteredPages := partial "filter-dated-pages.html" (dict "pages" .Pages "keepFutureTalks" true) }}
-
 {{ if site.Params.zenMode }}
 <div class="max-w-[65ch] mt-4 mx-auto">
 {{ else }}
@@ -17,7 +14,7 @@
       {{- .Title -}}
     </h1>
     <p class="text-sm">
-      {{- T "article" (len $filteredPages) -}}
+      {{- T "article" (len .Pages) -}}
     </p>
     <div class="flex flex-wrap gap-4 mt-6">
       {{ $title := .Title }}
@@ -41,7 +38,7 @@
   <div class="divider divider-vertical md:divider-horizontal px-4 md:px-0"></div>
   {{ end }}
   <div class="flex-1">
-    {{ $paginator := .Paginate $filteredPages }}
+    {{ $paginator := .Paginate .Pages }}
 
     {{ if site.Params.zenMode }}
       <div class="dream-zen-posts px-4 space-y-8">

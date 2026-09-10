@@ -4,9 +4,6 @@
 
 {{ define "main"}}
 
-{{/* Filter out future posts in production, show all in development */}}
-{{ $pastPages := cond (eq hugo.Environment "development") .Pages (where .Pages ".Date" "<=" now) }}
-
 <div class="mt-8 lg:mt-12 px-4">
   <div class="mx-auto prose dark:prose-invert">
     <h1 class="text-3xl">
@@ -20,7 +17,7 @@
   <div class="max-w-[65ch] mx-auto mt-8 lg:mt-12">
     <ul class="timeline timeline-vertical">
       {{ $groupLayout := default "2006" .Params.groupLayout }}
-      {{ range $pastPages.GroupByDate $groupLayout }}
+      {{ range .Pages.GroupByDate $groupLayout }}
       <li class="[--timeline-col-start:64px]">
         <hr class="dark:bg-base-content" />
         <div class="timeline-start justify-self-start!">

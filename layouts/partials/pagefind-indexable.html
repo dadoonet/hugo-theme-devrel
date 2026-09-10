@@ -1,21 +1,17 @@
 {{- /*
   Whether this page should be in the Pagefind index.
 
-  Upcoming talks (event date still in the future) and scheduled posts omit
-  data-pagefind-body so they are not searchable. Talks can still have public
-  URLs from their announcement date without --buildFuture; scheduled posts
-  still need --buildFuture (or buildFuture) to be generated at all.
+  Upcoming talks (event date still in the future) omit data-pagefind-body.
+  Talks can still have public URLs from their announcement date without
+  --buildFuture. Scheduled posts follow Hugo: if the page was generated
+  (--buildFuture / hugo server), it is indexed.
 
-  Talk templates and about pages are always indexed. In development, future
-  content stays searchable so local previews match the homepage/archives.
+  Talk templates and about pages are always indexed. In development,
+  upcoming talks stay searchable so local previews match listings.
 */ -}}
 {{- $index := true -}}
-{{- if and (ne hugo.Environment "development") (in (slice "posts" "talks") .Section) (ne .Params.layout "template") -}}
-  {{- if eq .Section "talks" -}}
-    {{- if partial "talk-is-upcoming.html" . -}}
-      {{- $index = false -}}
-    {{- end -}}
-  {{- else if gt .Date now -}}
+{{- if and (ne hugo.Environment "development") (eq .Section "talks") (ne .Params.layout "template") -}}
+  {{- if partial "talk-is-upcoming.html" . -}}
     {{- $index = false -}}
   {{- end -}}
 {{- end -}}

@@ -1,9 +1,7 @@
 {{ define "main"}}
 
-{{/* Filter out future posts in production, show all in development */}}
 {{ $allPosts := where site.RegularPages "Type" "posts" }}
-{{ $pastPosts := cond (eq hugo.Environment "development") $allPosts (where $allPosts ".Date" "<=" now) }}
-{{ $paginator := .Paginate $pastPosts }}
+{{ $paginator := .Paginate $allPosts }}
 
 {{ if site.Params.zenMode }}
 <div class="dream-zen-posts max-w-[65ch] mt-8 mx-auto px-4 space-y-8">

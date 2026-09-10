@@ -6,8 +6,7 @@
 
 {{ define "main"}}
 
-{{ $candidates := where site.RegularPages (print ".Params." .Data.Plural) "ne" nil }}
-{{ $filteredPages := partial "filter-dated-pages.html" (dict "pages" $candidates "keepFutureTalks" true) }}
+{{ $pages := where site.RegularPages (print ".Params." .Data.Plural) "ne" nil }}
 
 {{ if site.Params.zenMode }}
 <div class="max-w-[65ch] mt-4 mx-auto">
@@ -40,7 +39,7 @@
   <div class="divider divider-vertical md:divider-horizontal px-4 md:px-0"></div>
   {{ end }}
   <div class="flex-1">
-    {{ $paginator := .Paginate $filteredPages }}
+    {{ $paginator := .Paginate $pages }}
 
     {{ if site.Params.zenMode }}
       <div class="dream-zen-posts px-4 space-y-8">

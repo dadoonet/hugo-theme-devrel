@@ -1,0 +1,82 @@
+# Assert exampleSite with --buildFuture on pull requests.
+# Default (no --buildFuture) stays on Netlify previews and the Pages
+# production build. This job only checks the scheduled-post preview contract.
+name: Test scheduled post preview
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-buildfuture-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  buildfuture:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Paris
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Load tool versions
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source .github/versions.env
+          echo "HUGO_VERSION=$HUGO_VERSION" >> "$GITHUB_ENV"
+          echo "GO_VERSION=$GO_VERSION" >> "$GITHUB_ENV"
+          echo "NODE_VERSION=$NODE_VERSION" >> "$GITHUB_ENV"
+
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: exampleSite/package-lock.json
+
+      - name: Install Hugo (extended)
+        run: |
+          set -euo pipefail
+          curl -sL -o /tmp/hugo.tar.gz \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+          mkdir -p "${HOME}/.local/hugo"
+          tar -C "${HOME}/.local/hugo" -xzf /tmp/hugo.tar.gz
+          echo "${HOME}/.local/hugo" >> "${GITHUB_PATH}"
+
+      - name: Verify tools
+        run: |
+          hugo version
+          go version
+          node --version
+          npm --version
+
+      - name: Install npm dependencies
+        working-directory: exampleSite
+        run: npm ci
+
+      - name: Build exampleSite with --buildFuture
+        working-directory: exampleSite
+        env:
+          HUGO_ENVIRONMENT: production
+        run: |
+          hugo mod tidy
+          hugo --gc --minify --buildFuture --destination public-buildFuture
+          npx pagefind --site public-buildFuture
+          bash scripts/assert-pagefind-skips-future.sh public-buildFuture --buildFuture

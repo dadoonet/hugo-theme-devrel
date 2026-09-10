@@ -5,7 +5,12 @@ defaultContentLanguage = "en"
 
 # Upcoming talks use date (announcement) + conference.date (event), so they
 # are generated without buildFuture. Permalinks stay masked until the event.
-# Optional: uncomment to also publish scheduled posts (content/posts/2099-…).
+#
+# buildFuture is optional and only for previewing scheduled posts
+# (content/posts/2099-…) as if they were already published. The theme does
+# not re-filter those posts: without the flag Hugo omits the page; with it
+# the post is listed everywhere (home, archives, taxonomies, RSS, Pagefind,
+# prev/next). Production / Netlify stay without --buildFuture.
 # buildFuture = true
 
 [module]

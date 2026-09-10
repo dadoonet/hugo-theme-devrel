@@ -1,0 +1,32 @@
+{{- /*
+  Prev/next neighbors in the current section.
+
+  With buildFuture, scheduled posts still get URLs. Public listings already
+  hide them until their date; this helper applies the same filter so the
+  bottom-of-post nav does not leak those pages.
+
+  The current page is always kept, so a scheduled URL can still point at
+  the latest public neighbor.
+
+  In development, the section is unchanged so local previews match lists.
+
+  Keys match Hugo: next = older (NextInSection / prevPage),
+  prev = newer (PrevInSection / nextPage).
+*/ -}}
+{{- $current := . -}}
+{{- $pages := partial "filter-dated-pages.html" (dict "pages" .CurrentSection.RegularPages "include" .) -}}
+{{- $prev := false -}}
+{{- $next := false -}}
+{{- $found := false -}}
+{{- range $pages -}}
+  {{- if $found -}}
+    {{- if not $next -}}
+      {{- $next = . -}}
+    {{- end -}}
+  {{- else if eq .RelPermalink $current.RelPermalink -}}
+    {{- $found = true -}}
+  {{- else -}}
+    {{- $prev = . -}}
+  {{- end -}}
+{{- end -}}
+{{- return (dict "prev" $prev "next" $next) -}}

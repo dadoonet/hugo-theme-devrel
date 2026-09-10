@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Assert future-dated posts/talks are generated (buildFuture) but stay off
-# public lists (home, archives, categories, tags), RSS, and the Pagefind index.
+# public lists (home, archives, categories, tags), RSS, post prev/next nav,
+# and the Pagefind index.
 set -euo pipefail
 
 ROOT="${1:-public}"
@@ -78,6 +79,8 @@ assert_index_contains() {
 FUTURE_POST="${ROOT}/posts/2099-01-15-not-yet-published/index.html"
 FUTURE_TALK="${ROOT}/talks/2099/2099-03-20-futureconf/index.html"
 PAST_POST="${ROOT}/posts/2025-06-01-hello-devrel/index.html"
+LATEST_POST="${ROOT}/posts/2026-04-08-why-open-source-your-speaker-site/index.html"
+MID_POST="${ROOT}/posts/2026-01-20-from-laptop-to-stage/index.html"
 PAST_TALK="${ROOT}/talks/2025/2025-03-15-devfest-example/index.html"
 TEMPLATE="${ROOT}/talks/templates/search-that-scales/index.html"
 HOME="${ROOT}/index.html"
@@ -86,6 +89,8 @@ ARCHIVES="${ROOT}/posts/index.html"
 assert_file "$FUTURE_POST"
 assert_file "$FUTURE_TALK"
 assert_file "$PAST_POST"
+assert_file "$LATEST_POST"
+assert_file "$MID_POST"
 assert_file "$PAST_TALK"
 assert_file "$TEMPLATE"
 
@@ -131,6 +136,11 @@ assert_html_contains() {
 
 assert_html_omits "$HOME" "2099-01-15-not-yet-published" "homepage"
 assert_html_omits "$ARCHIVES" "2099-01-15-not-yet-published" "archives"
+assert_html_omits "$LATEST_POST" "2099-01-15-not-yet-published" "latest post prev/next"
+assert_html_contains "$LATEST_POST" "2026-01-20-from-laptop-to-stage" "latest post prev/next"
+assert_html_omits "$MID_POST" "2099-01-15-not-yet-published" "mid post prev/next"
+assert_html_contains "$MID_POST" "2026-04-08-why-open-source-your-speaker-site" "mid post next nav"
+assert_html_contains "$FUTURE_POST" "2026-04-08-why-open-source-your-speaker-site" "future post prev nav"
 assert_html_omits "${ROOT}/categories/index.html" "2099-01-15-not-yet-published" "all categories"
 assert_html_omits "${ROOT}/tags/index.html" "2099-01-15-not-yet-published" "all tags"
 assert_html_omits "${ROOT}/categories/meta/index.html" "2099-01-15-not-yet-published" "category meta"

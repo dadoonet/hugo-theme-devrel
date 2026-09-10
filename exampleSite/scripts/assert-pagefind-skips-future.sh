@@ -164,6 +164,7 @@ else
   assert_no_file "$FUTURE_POST"
 fi
 assert_file "$FUTURE_TALK"
+assert_file "${ROOT}/talks/2099/2099-03-20-futureconf/cover.svg"
 assert_file "$PAST_POST"
 assert_file "$LATEST_POST"
 assert_file "$MID_POST"

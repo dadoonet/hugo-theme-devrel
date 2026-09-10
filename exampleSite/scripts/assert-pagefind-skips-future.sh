@@ -182,57 +182,86 @@ assert_html_contains "$ALL_TALKS" "2099-03-20-futureconf" "all talks upcoming ca
 assert_html_contains "$FOSDEM" "Feb. 2026" "FOSDEM event month (not announcement)"
 
 # FOSDEM was announced in 2025 for a 2026 event — group under 2026.
-python3 - "$ALL_TALKS" <<'PY' || fail=1
-import sys
-from pathlib import Path
+# Pure bash: `python3 -` reads the program from stdin and can hang on CI
+# images that keep fd 0 open.
+year_id_pos() {
+  local html="$1"
+  local year="$2"
+  local needle prefix
+  for needle in "id=year-${year}" "id=\"year-${year}\"" "id='year-${year}'"; do
+    case "$html" in
+      *"$needle"*)
+        prefix="${html%%"${needle}"*}"
+        echo "${#prefix}"
+        return 0
+        ;;
+    esac
+  done
+  echo -1
+}
 
-path = Path(sys.argv[1])
-if not path.is_file():
-    print(f"FAIL: missing {path} (all talks year grouping)")
-    sys.exit(1)
-html = path.read_text()
-
-def find_year(html, year):
-    for needle in (f'id=year-{year}', f'id="year-{year}"', f"id='year-{year}'"):
-        i = html.find(needle)
-        if i >= 0:
-            return i
-    return -1
-
-idx_2099 = find_year(html, "2099")
-idx_2026 = find_year(html, "2026")
-idx_2025 = find_year(html, "2025")
-ok = True
-if idx_2026 < 0:
-    print("FAIL: missing year-2026 section on /talks/all/")
-    ok = False
-if idx_2025 < 0:
-    print("FAIL: missing year-2025 section on /talks/all/")
-    ok = False
-body_2026 = html[idx_2026:idx_2025 if idx_2025 > idx_2026 else None] if idx_2026 >= 0 else ""
-body_2025 = html[idx_2025:] if idx_2025 >= 0 else ""
-if "2026-02-01-fosdem" not in body_2026:
-    print("FAIL: FOSDEM missing from 2026 year group on /talks/all/")
-    ok = False
-else:
-    print("OK: FOSDEM grouped under 2026")
-if "2026-02-01-fosdem" in body_2025:
-    print("FAIL: FOSDEM wrongly listed under 2025 (announcement year)")
-    ok = False
-else:
-    print("OK: FOSDEM omitted from 2025 year group")
-if "2025-03-15-devfest-example" not in body_2025:
-    print("FAIL: DevFest (no conference.date) missing from 2025 year group")
-    ok = False
-else:
-    print("OK: DevFest fallback date grouped under 2025")
-if idx_2099 >= 0 and "2099-03-20-futureconf" not in html[idx_2099:idx_2026 if idx_2026 > idx_2099 else None]:
-    print("FAIL: FutureConf missing from 2099 year group")
-    ok = False
-elif idx_2099 >= 0:
-    print("OK: FutureConf grouped under 2099")
-sys.exit(0 if ok else 1)
-PY
+if [[ ! -f "$ALL_TALKS" ]]; then
+  echo "FAIL: missing ${ALL_TALKS} (all talks year grouping)"
+  fail=1
+else
+  _all_html=$(<"$ALL_TALKS")
+  idx_2099=$(year_id_pos "$_all_html" 2099)
+  idx_2026=$(year_id_pos "$_all_html" 2026)
+  idx_2025=$(year_id_pos "$_all_html" 2025)
+  if [[ "$idx_2026" -lt 0 ]]; then
+    echo "FAIL: missing year-2026 section on /talks/all/"
+    fail=1
+  fi
+  if [[ "$idx_2025" -lt 0 ]]; then
+    echo "FAIL: missing year-2025 section on /talks/all/"
+    fail=1
+  fi
+  body_2026=""
+  body_2025=""
+  body_2099=""
+  if [[ "$idx_2026" -ge 0 ]]; then
+    if [[ "$idx_2025" -gt "$idx_2026" ]]; then
+      body_2026="${_all_html:idx_2026:$((idx_2025 - idx_2026))}"
+    else
+      body_2026="${_all_html:idx_2026}"
+    fi
+  fi
+  if [[ "$idx_2025" -ge 0 ]]; then
+    body_2025="${_all_html:idx_2025}"
+  fi
+  if [[ "$idx_2099" -ge 0 ]]; then
+    if [[ "$idx_2026" -gt "$idx_2099" ]]; then
+      body_2099="${_all_html:idx_2099:$((idx_2026 - idx_2099))}"
+    else
+      body_2099="${_all_html:idx_2099}"
+    fi
+  fi
+  if [[ "$body_2026" != *2026-02-01-fosdem* ]]; then
+    echo "FAIL: FOSDEM missing from 2026 year group on /talks/all/"
+    fail=1
+  else
+    echo "OK: FOSDEM grouped under 2026"
+  fi
+  if [[ "$body_2025" == *2026-02-01-fosdem* ]]; then
+    echo "FAIL: FOSDEM wrongly listed under 2025 (announcement year)"
+    fail=1
+  else
+    echo "OK: FOSDEM omitted from 2025 year group"
+  fi
+  if [[ "$body_2025" != *2025-03-15-devfest-example* ]]; then
+    echo "FAIL: DevFest (no conference.date) missing from 2025 year group"
+    fail=1
+  else
+    echo "OK: DevFest fallback date grouped under 2025"
+  fi
+  if [[ "$idx_2099" -ge 0 && "$body_2099" != *2099-03-20-futureconf* ]]; then
+    echo "FAIL: FutureConf missing from 2099 year group"
+    fail=1
+  elif [[ "$idx_2099" -ge 0 ]]; then
+    echo "OK: FutureConf grouped under 2099"
+  fi
+  unset _all_html body_2026 body_2025 body_2099 idx_2099 idx_2026 idx_2025
+fi
 
 load_index_text || true
 

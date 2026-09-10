@@ -1,0 +1,151 @@
+# Manually cut a theme release from the current tip of main.
+# Actions → Release theme → Run workflow → enter version (e.g. v0.1.1).
+# Optional: enable force to move an existing tag and recreate its release.
+#
+# Steps: validate version → reject/replace duplicate tag → tag origin/main →
+# push tag → GitHub Release with auto-generated notes (since previous
+# tag, or full history if first).
+
+name: Release theme
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (format vx.y.z, e.g. v0.1.1)"
+        required: true
+        type: string
+      force:
+        description: "Replace existing tag and GitHub Release for this version"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-theme
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate version
+        id: version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          VERSION="${VERSION#"${VERSION%%[![:space:]]*}"}"
+          VERSION="${VERSION%"${VERSION##*[![:space:]]}"}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version '$VERSION'. Expected format: vx.y.z (e.g. v0.1.1)"
+            exit 1
+          fi
+          echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using tag $VERSION (force=${{ inputs.force }})"
+
+      - name: Reject or replace duplicate tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          FORCE: ${{ inputs.force }}
+          GH_TOKEN: ${{ github.token }}
+          REPO_GIT: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          set -euo pipefail
+          if ! git ls-remote --tags "$REPO_GIT" "refs/tags/${TAG}" | grep -q .; then
+            echo "Tag ${TAG} does not exist on origin yet"
+            exit 0
+          fi
+
+          if [[ "$FORCE" != "true" ]]; then
+            echo "::error::Tag ${TAG} already exists on origin. Re-run with force enabled to move the tag and recreate the release."
+            exit 1
+          fi
+
+          echo "force=true: removing existing release/tag ${TAG}"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release delete "$TAG" --repo "${{ github.repository }}" --yes --cleanup-tag
+          else
+            gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${TAG}"
+          fi
+
+          if git ls-remote --tags "$REPO_GIT" "refs/tags/${TAG}" | grep -q .; then
+            echo "::error::Failed to delete remote tag ${TAG}"
+            exit 1
+          fi
+          echo "Remote tag ${TAG} removed"
+
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Ensure tip of origin/main
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+          echo "Releasing $(git rev-parse --short HEAD) ($(git log -1 --pretty=%s))"
+
+      - name: Create and push tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release ${TAG}"
+          git push origin "refs/tags/${TAG}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          PREV="$(git tag --list 'v*.*.*' --sort=-v:refname | grep -vxF "$TAG" | head -1 || true)"
+
+          # Custom notes are prepended to --generate-notes (GitHub API behavior).
+          NOTES_FILE="$(mktemp)"
+          cat > "$NOTES_FILE" <<'EOF'
+          ## Use this release
+
+          Import the theme in `hugo.toml`, then pin this tag in your site module:
+
+          ```toml
+          [module]
+            [[module.imports]]
+              path = "github.com/dadoonet/hugo-theme-devrel"
+          ```
+
+          ```sh
+          hugo mod get github.com/dadoonet/hugo-theme-devrel@TAG_PLACEHOLDER
+          ```
+
+          That writes the version into `go.mod` (`require github.com/dadoonet/hugo-theme-devrel TAG_PLACEHOLDER`).
+          EOF
+          sed -i "s/TAG_PLACEHOLDER/${TAG}/g" "$NOTES_FILE"
+
+          args=(
+            "$TAG"
+            --title "$TAG"
+            --notes-file "$NOTES_FILE"
+            --generate-notes
+          )
+          if [[ -n "$PREV" ]]; then
+            args+=( --notes-start-tag "$PREV" )
+            echo "Generating notes since ${PREV}"
+          else
+            echo "No previous v*.*.* tag; generating notes from repository history"
+          fi
+          gh release create "${args[@]}"
+          echo "Release URL: $(gh release view "$TAG" --json url --jq .url)"

@@ -1,0 +1,100 @@
+# Manually cut a theme release from the current tip of main.
+# Actions → Release theme → Run workflow → enter version (e.g. v0.1.1).
+#
+# Steps: validate version → tag origin/main → push tag → GitHub Release
+# with auto-generated notes (since previous tag, or full history if first).
+
+name: Release theme
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (format vx.y.z, e.g. v0.1.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-theme
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate version
+        id: version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          VERSION="${VERSION#"${VERSION%%[![:space:]]*}"}"
+          VERSION="${VERSION%"${VERSION##*[![:space:]]}"}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version '$VERSION'. Expected format: vx.y.z (e.g. v0.1.1)"
+            exit 1
+          fi
+          echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using tag $VERSION"
+
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Ensure tip of origin/main
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+          echo "Releasing $(git rev-parse --short HEAD) ($(git log -1 --pretty=%s))"
+
+      - name: Reject duplicate tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "::error::Tag ${TAG} already exists. Choose a new version."
+            exit 1
+          fi
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
+            echo "::error::Tag ${TAG} already exists on origin. Choose a new version."
+            exit 1
+          fi
+
+      - name: Create and push tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release ${TAG}"
+          git push origin "refs/tags/${TAG}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          PREV="$(git tag --list 'v*.*.*' --sort=-v:refname | grep -vxF "$TAG" | head -1 || true)"
+          args=( "$TAG" --title "$TAG" --generate-notes )
+          if [[ -n "$PREV" ]]; then
+            args+=( --notes-start-tag "$PREV" )
+            echo "Generating notes since ${PREV}"
+          else
+            echo "No previous v*.*.* tag; generating notes from repository history"
+          fi
+          gh release create "${args[@]}"
+          echo "Release URL: $(gh release view "$TAG" --json url --jq .url)"

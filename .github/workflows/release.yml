@@ -113,7 +113,34 @@ jobs:
         run: |
           set -euo pipefail
           PREV="$(git tag --list 'v*.*.*' --sort=-v:refname | grep -vxF "$TAG" | head -1 || true)"
-          args=( "$TAG" --title "$TAG" --generate-notes )
+
+          # Custom notes are prepended to --generate-notes (GitHub API behavior).
+          NOTES_FILE="$(mktemp)"
+          cat > "$NOTES_FILE" <<'EOF'
+          ## Use this release
+
+          Import the theme in `hugo.toml`, then pin this tag in your site module:
+
+          ```toml
+          [module]
+            [[module.imports]]
+              path = "github.com/dadoonet/hugo-theme-devrel"
+          ```
+
+          ```sh
+          hugo mod get github.com/dadoonet/hugo-theme-devrel@TAG_PLACEHOLDER
+          ```
+
+          That writes the version into `go.mod` (`require github.com/dadoonet/hugo-theme-devrel TAG_PLACEHOLDER`).
+          EOF
+          sed -i "s/TAG_PLACEHOLDER/${TAG}/g" "$NOTES_FILE"
+
+          args=(
+            "$TAG"
+            --title "$TAG"
+            --notes-file "$NOTES_FILE"
+            --generate-notes
+          )
           if [[ -n "$PREV" ]]; then
             args+=( --notes-start-tag "$PREV" )
             echo "Generating notes since ${PREV}"

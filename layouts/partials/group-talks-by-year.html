@@ -1,0 +1,22 @@
+{{- /*
+  Group talk pages by event-date year (conference.date, else page date).
+
+  Returns a slice of dicts { Key, Pages } (newest year first). Pages
+  inside each year are sorted by event date descending.
+*/ -}}
+{{- $scratch := newScratch -}}
+{{- $scratch.Set "years" slice -}}
+{{- range . -}}
+  {{- $year := (partial "talk-date.html" .).Format "2006" -}}
+  {{- if not ($scratch.Get $year) -}}
+    {{- $scratch.Set $year slice -}}
+    {{- $scratch.Add "years" (slice $year) -}}
+  {{- end -}}
+  {{- $scratch.Add $year (slice .) -}}
+{{- end -}}
+{{- $groups := slice -}}
+{{- range sort ($scratch.Get "years") "value" "desc" -}}
+  {{- $yearPages := partial "sort-talks.html" (dict "pages" ($scratch.Get .) "order" "desc") -}}
+  {{- $groups = $groups | append (dict "Key" . "Pages" $yearPages) -}}
+{{- end -}}
+{{- return $groups -}}

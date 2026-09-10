@@ -8,6 +8,7 @@ conference:
   url: "https://devoxx.be/"
   latitude: "51.219448"
   longitude: "4.402464"
+  date: 2025-11-08
 authors:
   - author: "Alex Rivera"
 date: 2025-11-08

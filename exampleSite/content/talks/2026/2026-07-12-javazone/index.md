@@ -8,6 +8,7 @@ conference:
   url: "https://javazone.no/"
   latitude: "59.913869"
   longitude: "10.752245"
+  date: 2026-07-12
 authors:
   - author: "Alex Rivera"
 date: 2026-07-12

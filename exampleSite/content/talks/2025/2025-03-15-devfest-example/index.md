@@ -22,3 +22,5 @@ links:
 ---
 
 Search UI is easy to demo and hard to operate. This fictional session walks through relevance, latency, and the boring bits: synonyms, analyzers, and saying no to “just add a vector”.
+
+`conference.date` is omitted on purpose: the theme falls back to the page `date` (15 March 2025).

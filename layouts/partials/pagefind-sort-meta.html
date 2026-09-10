@@ -1,5 +1,8 @@
 {{/* Sort key for empty-query browse: date desc (ISO lexicographic / Pagefind string sort). */}}
 {{- $d := .Date -}}
+{{- if eq .Section "talks" -}}
+  {{- $d = partial "talk-date.html" . -}}
+{{- end -}}
 {{- if $d.IsZero -}}
   {{- $d = .Lastmod -}}
 {{- end -}}

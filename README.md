@@ -177,9 +177,10 @@ conference:
   url: "https://…"         # optional
   latitude: "48.856614"    # optional — used by the map
   longitude: "2.352222"
+  date: YYYY-MM-DD         # event day; falls back to page `date` if omitted
 authors:
   - author: "Your Name"            # avatar inferred; set avatar: only to override
-date: YYYY-MM-DD
+date: YYYY-MM-DD                   # announcement / Hugo publish date
 talk-lang: en
 pdf: "YYYY/YYYY-MM-DD-event.pdf"   # relative to params.talks.pdf_base_url, or site-relative if empty
 talk: "Topic Name"                 # groups occurrences + links to template
@@ -189,6 +190,12 @@ social: []                         # optional X / Bluesky / LinkedIn post URLs
 ```
 
 Drop `cover:` when the bundle contains `cover.*`. Drop `avatar:` when the speaker is `params.author` (uses `params.avatar`) or when a file exists at `static/speakers/firstname_lastname.{avif,svg,webp,png,jpg,jpeg}`. Set those fields only to use a different filename — `exampleSite` does this on FOSDEM (`cover: hero.svg`) and for Jordan Blake (`avatar: speakers/jordan.svg`).
+
+`date` is when the talk page goes public (Hugo’s publish date). `conference.date` is when the session happens. Listings, maps, year grouping, the Upcoming table, and the masked permalink all use `conference.date`. If `conference.date` is omitted, the theme falls back to `date`.
+
+Set `date` to the day you want the announcement live, and `conference.date` to the event. You do **not** need `--buildFuture` for upcoming talks: Hugo generates the page from `date`, and the theme hides the talk permalink until `conference.date`. Conference site links stay visible so people can still find the event. Pagefind and the home RSS wait for the event date as well; `/talks/index.xml` lists upcoming sessions.
+
+`--buildFuture` remains optional for **scheduled posts** (a `content/posts/` page whose `date` is still in the future).
 
 `social` is a list of public post URLs. The theme embeds X, Bluesky, and LinkedIn (see JavaZone in `exampleSite`).
 
@@ -261,8 +268,8 @@ The example site ships enough pages to exercise every layout:
 
 | Kind       | What is in `exampleSite/`                                                                                      |
 |------------|----------------------------------------------------------------------------------------------------------------|
-| Posts      | 5 page bundles; one dated 2099 (generated, not listed or indexed)                                              |
-| Talks      | 8 sessions; one dated 2099 (Upcoming card, not indexed); FOSDEM sets `cover: hero.svg`                         |
+| Posts      | 5 page bundles; one dated 2099 (not generated unless --buildFuture)                                            |
+| Talks      | 8 sessions; FutureConf announced for 2099 (Upcoming, not indexed); FOSDEM sets `cover: hero.svg`               |
 | Templates  | 3 recurring topics (`Search that scales`, `Observability for humans`, `Communities that last`) with EN/FR copy |
 | Videos     | 2 talks with YouTube ids so `/talks/videos/` is not empty                                                      |
 | Social     | JavaZone lists public X, Bluesky, and LinkedIn URLs for the three embed types                                  |
@@ -306,7 +313,7 @@ hugo server
 
 Use a `replace` in `exampleSite/go.mod` pointing at the parent theme while developing.
 
-Pagefind indexes pages marked with `data-pagefind-body` (posts, talks, talk templates, about). Future-dated posts and talks omit that attribute in production, so `--buildFuture` can still generate their URLs (upcoming talks, scheduled posts) without leaking them in search — the same date filter already used on the homepage, archives, category/tag lists, RSS, and the prev/next links at the bottom of posts. Talk templates and about pages are always indexed. The home RSS omits future talks as well; `/talks/index.xml` still lists upcoming sessions. Filters: `section:posts`, `section:talks`, `section:templates`, `section:videos`, `section:about`. Cover images (front matter, `cover.*`, or YouTube thumbnail) are exposed as result images. Indexed pages emit `data-pagefind-sort="date:YYYY-MM-DD"`; empty queries (browse / filter alone) sort by date descending, while non-empty queries keep Pagefind relevance scoring. The nav shows a search icon that opens a centered modal; the section filter appears on the same row as the query once you type. Contextual presets apply on `/posts*` and `/talks*` (including templates/videos). A basic `/search` page remains; a richer dedicated search UI may come later.
+Pagefind indexes pages marked with `data-pagefind-body` (posts, talks, talk templates, about). Upcoming talks (event date still in the future) and scheduled posts omit that attribute in production. Talks no longer need `--buildFuture`: set `date` to the announcement and `conference.date` to the event so Hugo generates the page while listings mask the permalink until the session. `--buildFuture` remains optional for scheduled posts. The same event-date filter is used on the homepage RSS (upcoming talks omitted there); `/talks/index.xml` still lists upcoming sessions. Talk templates and about pages are always indexed. Filters: `section:posts`, `section:talks`, `section:templates`, `section:videos`, `section:about`. Cover images (front matter, `cover.*`, or YouTube thumbnail) are exposed as result images. Indexed pages emit `data-pagefind-sort="date:YYYY-MM-DD"` (talks use the event date); empty queries (browse / filter alone) sort by date descending, while non-empty queries keep Pagefind relevance scoring. The nav shows a search icon that opens a centered modal; the section filter appears on the same row as the query once you type. Contextual presets apply on `/posts*` and `/talks*` (including templates/videos). A basic `/search` page remains; a richer dedicated search UI may come later.
 
 ## License
 

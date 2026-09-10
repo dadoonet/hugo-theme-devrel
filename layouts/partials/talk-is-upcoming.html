@@ -1,0 +1,6 @@
+{{- /*
+  True when the talk’s event date (conference.date, else page date) is
+  still in the future. Upcoming talks are listed, but their permalink
+  stays masked until that date.
+*/ -}}
+{{- return (gt (partial "talk-date.html" .) now) -}}

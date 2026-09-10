@@ -158,14 +158,15 @@
 {{ $allTalks := where (where site.RegularPages "Section" "talks") ".File.Dir" "not in" (slice "talks/templates/") }}
 {{ range $templates }}
   {{ $talkName := .Params.talk }}
-  {{ $latestDate := time "1970-01-01" }}
-  {{ $playedCount := 0 }}
-  {{ range where $allTalks ".Params.talk" $talkName }}
-    {{ $playedCount = add $playedCount 1 }}
-    {{ if gt .Date $latestDate }}
-      {{ $latestDate = .Date }}
-    {{ end }}
-  {{ end }}
+      {{ $latestDate := time "1970-01-01" }}
+      {{ $playedCount := 0 }}
+      {{ range where $allTalks ".Params.talk" $talkName }}
+        {{ $playedCount = add $playedCount 1 }}
+        {{ $eventDate := partial "talk-date.html" . }}
+        {{ if gt $eventDate $latestDate }}
+          {{ $latestDate = $eventDate }}
+        {{ end }}
+      {{ end }}
   {{ $templatesWithDates = $templatesWithDates | append (dict "template" . "latestDate" $latestDate "playedCount" $playedCount) }}
 {{ end }}
 

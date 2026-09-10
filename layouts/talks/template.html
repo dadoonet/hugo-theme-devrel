@@ -202,14 +202,13 @@
 {{/* Get all talks with this template (excluding template pages themselves) */}}
 {{ $talkName := .Params.talk }}
 {{ $relatedTalks := slice }}
-{{ $now := now }}
 {{ range where (where site.RegularPages "Section" "talks") ".Params.talk" $talkName }}
   {{/* Exclude template pages (they have layout: "template") */}}
   {{ if ne .Params.layout "template" }}
     {{ $relatedTalks = $relatedTalks | append . }}
   {{ end }}
 {{ end }}
-{{ $sortedTalks := sort $relatedTalks ".Date" "desc" }}
+{{ $sortedTalks := partial "sort-talks.html" (dict "pages" $relatedTalks "order" "desc") }}
 {{ $totalPlayed := len $sortedTalks }}
 
 {{/* Build sorted templates list for prev/next navigation */}}
@@ -223,8 +222,9 @@
   {{ $tName := .Params.talk }}
   {{ $latestDate := time "1970-01-01" }}
   {{ range where $allTalksForNav ".Params.talk" $tName }}
-    {{ if gt .Date $latestDate }}
-      {{ $latestDate = .Date }}
+    {{ $eventDate := partial "talk-date.html" . }}
+    {{ if gt $eventDate $latestDate }}
+      {{ $latestDate = $eventDate }}
     {{ end }}
   {{ end }}
   {{ $templatesWithDates = $templatesWithDates | append (dict "template" . "latestDate" $latestDate) }}
@@ -248,14 +248,14 @@
 {{/* Get last public appearance (most recent past talk) */}}
 {{ $lastPublicTalk := false }}
 {{ range $sortedTalks }}
-  {{ if and (not $lastPublicTalk) (le .Date $now) }}
+  {{ if and (not $lastPublicTalk) (not (partial "talk-is-upcoming.html" .)) }}
     {{ $lastPublicTalk = . }}
   {{ end }}
 {{ end }}
 
 {{/* Get first public appearance (oldest talk) */}}
 {{ $firstPublicTalk := false }}
-{{ $reverseSortedTalks := sort $relatedTalks ".Date" "asc" }}
+{{ $reverseSortedTalks := partial "sort-talks.html" (dict "pages" $relatedTalks "order" "asc") }}
 {{ range $reverseSortedTalks }}
   {{ if not $firstPublicTalk }}
     {{ $firstPublicTalk = . }}
@@ -323,14 +323,14 @@
           <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
             <ion-icon name="calendar" class="text-secondary"></ion-icon>
             <span class="text-base-content/70">First</span>
-            <span class="font-bold text-secondary">{{ $firstPublicTalk.Date | time.Format "Jan 2006" }}</span>
+            <span class="font-bold text-secondary">{{ (partial "talk-date.html" $firstPublicTalk) | time.Format "Jan 2006" }}</span>
           </div>
           {{ end }}
           {{ if $lastPublicTalk }}
           <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
             <ion-icon name="time" class="text-accent"></ion-icon>
             <span class="text-base-content/70">Last</span>
-            <span class="font-bold text-accent">{{ $lastPublicTalk.Date | time.Format "Jan 2006" }}</span>
+            <span class="font-bold text-accent">{{ (partial "talk-date.html" $lastPublicTalk) | time.Format "Jan 2006" }}</span>
           </div>
           {{ end }}
         </div>
@@ -433,14 +433,14 @@
         <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
           <ion-icon name="calendar" class="text-secondary"></ion-icon>
           <span class="text-base-content/70">First</span>
-          <span class="font-bold text-secondary">{{ $firstPublicTalk.Date | time.Format "Jan 2006" }}</span>
+          <span class="font-bold text-secondary">{{ (partial "talk-date.html" $firstPublicTalk) | time.Format "Jan 2006" }}</span>
         </div>
         {{ end }}
         {{ if $lastPublicTalk }}
         <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-1.5 text-sm">
           <ion-icon name="time" class="text-accent"></ion-icon>
           <span class="text-base-content/70">Last</span>
-          <span class="font-bold text-accent">{{ $lastPublicTalk.Date | time.Format "Jan 2006" }}</span>
+          <span class="font-bold text-accent">{{ (partial "talk-date.html" $lastPublicTalk) | time.Format "Jan 2006" }}</span>
         </div>
         {{ end }}
       </div>
@@ -527,22 +527,12 @@
   <div class="divider my-8"></div>
   <h2 class="text-2xl font-bold mb-4">Conferences</h2>
   
-  {{/* Group talks by year using scratch */}}
-  {{ $yearScratch := newScratch }}
-  {{ $yearScratch.Set "years" slice }}
-  {{ range $sortedTalks }}
-    {{ $year := .Date.Format "2006" }}
-    {{ if not ($yearScratch.Get $year) }}
-      {{ $yearScratch.Set $year slice }}
-      {{ $yearScratch.Add "years" $year }}
-    {{ end }}
-    {{ $yearScratch.Add $year (slice .) }}
-  {{ end }}
-  {{ $sortedYears := sort ($yearScratch.Get "years") "value" "desc" }}
+  {{/* Group talks by event-date year */}}
+  {{ $yearGroups := partial "group-talks-by-year.html" $sortedTalks }}
 
-  {{ range $sortedYears }}
-  {{ $year := . }}
-  {{ $yearTalks := $yearScratch.Get $year }}
+  {{ range $yearGroups }}
+  {{ $year := .Key }}
+  {{ $yearTalks := .Pages }}
   <section id="year-{{ $year }}" class="mb-12">
     <div class="flex items-center gap-4 mb-6">
       <div class="year-badge">
@@ -554,16 +544,17 @@
 
     <div class="talks-grid">
       {{ range $yearTalks }}
+      {{ $isUpcoming := partial "talk-is-upcoming.html" . }}
       <article class="card bg-base-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
         {{ $cover := partial "cover-resource.html" . }}
         {{ if $cover }}
         <figure class="relative overflow-hidden h-40">
-          {{ if le .Date $now }}
+          {{ if not $isUpcoming }}
           <a href="{{ .RelPermalink }}">
           {{ end }}
             <img src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
             <div class="absolute inset-0 bg-gradient-to-t from-base-200/80 to-transparent"></div>
-          {{ if le .Date $now }}
+          {{ if not $isUpcoming }}
           </a>
           {{ end }}
         </figure>
@@ -575,7 +566,7 @@
             {{ partial "slidesLabel.html" . }}
             {{ partial "videoLabel.html" . }}
 
-            {{ if gt .Date $now }}
+            {{ if $isUpcoming }}
             <span class="badge badge-primary badge-sm gap-1">
               <ion-icon name="alarm" class="text-xs"></ion-icon>
               Upcoming
@@ -583,7 +574,7 @@
             {{ end }}
           </div>
           <h3 class="card-title text-base leading-tight line-clamp-2 min-h-[2.5rem]">
-            {{ if gt .Date $now }}
+            {{ if $isUpcoming }}
             {{ .Title }}
             {{ else }}
             <a href="{{ .RelPermalink }}" class="hover:text-primary transition-colors">{{ .Title }}</a>
@@ -596,7 +587,7 @@
               {{ else }}
               <span class="truncate max-w-[60%]" title="{{ .Params.conference.name }}">{{ .Params.conference.name }}</span>
               {{ end }}
-              <span title="{{ .Date | time.Format "January 2, 2006" }}">{{ .Date | time.Format "Jan 2" }}</span>
+              <span title="{{ (partial "talk-date.html" .) | time.Format "January 2, 2006" }}">{{ (partial "talk-date.html" .) | time.Format "Jan 2" }}</span>
             </div>
           </div>
         </div>

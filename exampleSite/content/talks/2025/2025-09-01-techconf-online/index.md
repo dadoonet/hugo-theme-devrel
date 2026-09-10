@@ -5,6 +5,7 @@ conference:
   city: "Online"
   country: "Online"
   country_code: "online"
+  date: 2025-09-01
 authors:
   - author: "Alex Rivera"
 date: 2025-09-01

@@ -111,7 +111,7 @@
   {{ $lon := .Params.conference.longitude }}
   {{ $country := .Params.conference.country }}
   {{ $countryCode := .Params.conference.country_code }}
-  {{ $talkDate := .Date }}
+  {{ $talkDate := partial "talk-date.html" . }}
   
   {{/* Filter by date if dates are provided */}}
   {{ $includeTalk := true }}
@@ -206,7 +206,7 @@
     {
       title: {{ .Title | jsonify }},
       url: {{ .RelPermalink | jsonify }},
-      date: {{ .Date | time.Format "2006-01-02" | jsonify }},
+      date: {{ (partial "talk-date.html" .) | time.Format "2006-01-02" | jsonify }},
       conference: {{ .Params.conference.name | jsonify }},
       city: {{ if .Params.conference.city }}{{ .Params.conference.city | jsonify }}{{ else }}""{{ end }},
       country: {{ if .Params.conference.country }}{{ .Params.conference.country | jsonify }}{{ else }}""{{ end }},

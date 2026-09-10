@@ -8,6 +8,7 @@ conference:
   url: "https://www.cncf.io/"
   latitude: "51.507351"
   longitude: "-0.127758"
+  date: 2026-04-16
 authors:
   - author: "Alex Rivera"
 date: 2026-04-16

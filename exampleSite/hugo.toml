@@ -3,10 +3,10 @@ title = "DevRel Example"
 locale = "en-us"
 defaultContentLanguage = "en"
 
-# Generate upcoming talks (and scheduled posts) so they have URLs, matching
-# production sites that pass --buildFuture. Listings and Pagefind still hide
-# unpublished posts; Pagefind also skips future talks until their date.
-buildFuture = true
+# Upcoming talks use date (announcement) + conference.date (event), so they
+# are generated without buildFuture. Permalinks stay masked until the event.
+# Optional: uncomment to also publish scheduled posts (content/posts/2099-…).
+# buildFuture = true
 
 [module]
   [[module.imports]]

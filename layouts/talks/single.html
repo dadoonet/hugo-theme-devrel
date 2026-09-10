@@ -95,7 +95,7 @@
             </p>
           </div>
           <p class="m-0 text-right">
-            {{ .Date | time.Format "Jan. 2006" }}
+            {{ (partial "talk-date.html" .) | time.Format "Jan. 2006" }}
           </p>
         </div>
 
@@ -183,9 +183,8 @@
       {{ if site.Params.showPrevNextPost }}
       <div class="divider" data-pagefind-ignore></div>
       <div class="flex flex-col md:flex-row justify-between gap-4 py-4" data-pagefind-ignore>
-        {{ $now := now }}
         {{ with .NextInSection }}
-          {{ if le .Date $now }}
+          {{ if not (partial "talk-is-upcoming.html" .) }}
           <a role="button" class="btn btn-outline h-12" href="{{ .RelPermalink }}" title="{{ .Title }}">
             <ion-icon name="chevron-back"></ion-icon>
             <div class="inline-flex flex-col items-start">
@@ -238,7 +237,7 @@
     {{/* See also section - other conferences with the same talk */}}
     {{ if gt (len $relatedTalks) 0 }}
     {{ $totalRelated := len $relatedTalks }}
-    {{ $sortedRelated := sort $relatedTalks ".Date" "desc" }}
+    {{ $sortedRelated := partial "sort-talks.html" (dict "pages" $relatedTalks "order" "desc") }}
     {{ $displayLimit := 7 }}
     
     <nav class="w-full">
@@ -254,23 +253,22 @@
         <span class="badge badge-sm badge-primary">{{ $totalRelated }}</span>
         {{ i18n "times" }}
       </div>
-      {{ $now := now }}
       <ul class="menu menu-sm bg-base-200 rounded-box w-full max-h-[40vh] overflow-y-auto">
         {{ if le $totalRelated $displayLimit }}
           {{/* Afficher tous les talks si moins que la limite */}}
           {{ range $sortedRelated }}
           {{ $isCurrent := eq .Permalink $currentPagePermalink }}
-          {{ $isUpcoming := gt .Date $now }}
+          {{ $isUpcoming := partial "talk-is-upcoming.html" . }}
           <li>
             {{ if $isUpcoming }}
             {{/* Talk à venir : pas de lien direct, juste une icône discrète */}}
             <div class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(34, 197, 94, 0.25);"{{ end }}>
-              <span class="text-xs text-base-content/60">{{ .Date | time.Format "2006-01-02" }} – {{ .Params.conference.name }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
+              <span class="text-xs text-base-content/60">{{ (partial "talk-date.html" .) | time.Format "2006-01-02" }} – {{ .Params.conference.name }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
               <span class="text-sm">{{ .Title }} <a href="{{ .RelPermalink }}" title="Voir les détails">&nbsp;</a></span>
             </div>
             {{ else }}
             <a href="{{ .RelPermalink }}" class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(34, 197, 94, 0.25);"{{ end }}>
-              <span class="text-xs text-base-content/60">{{ .Date | time.Format "2006-01-02" }} – {{ .Params.conference.name }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
+              <span class="text-xs text-base-content/60">{{ (partial "talk-date.html" .) | time.Format "2006-01-02" }} – {{ .Params.conference.name }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
               <span class="text-sm">{{ .Title }}</span>
             </a>
             {{ end }}
@@ -401,17 +399,17 @@
               
               {{/* Afficher le talk */}}
               {{ $isCurrent := eq $talk.Permalink $currentPagePermalink }}
-              {{ $isUpcoming := gt $talk.Date $now }}
+              {{ $isUpcoming := partial "talk-is-upcoming.html" $talk }}
               <li>
                 {{ if $isUpcoming }}
                 {{/* Talk à venir : pas de lien direct, juste une icône discrète */}}
                 <div class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(34, 197, 94, 0.25);"{{ end }}>
-                  <span class="text-xs text-base-content/60">{{ $talk.Date | time.Format "2006-01-02" }} – {{ $talk.Params.conference.name }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
+                  <span class="text-xs text-base-content/60">{{ (partial "talk-date.html" $talk) | time.Format "2006-01-02" }} – {{ $talk.Params.conference.name }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
                   <span class="text-sm">{{ $talk.Title }} <a href="{{ $talk.RelPermalink }}" title="Voir les détails"><ion-icon name="open-outline" class="text-xs"></ion-icon></a></span>
                 </div>
                 {{ else }}
                 <a href="{{ $talk.RelPermalink }}" class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(34, 197, 94, 0.25);"{{ end }}>
-                  <span class="text-xs text-base-content/60">{{ $talk.Date | time.Format "2006-01-02" }} – {{ $talk.Params.conference.name }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
+                  <span class="text-xs text-base-content/60">{{ (partial "talk-date.html" $talk) | time.Format "2006-01-02" }} – {{ $talk.Params.conference.name }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
                   <span class="text-sm">{{ $talk.Title }}</span>
                 </a>
                 {{ end }}
@@ -428,7 +426,7 @@
     {{/* At this conference section - other talks at the same conference */}}
     {{ if gt (len $conferenceTalks) 1 }}
     {{ $totalConference := len $conferenceTalks }}
-    {{ $sortedConference := sort $conferenceTalks ".Date" "desc" }}
+    {{ $sortedConference := partial "sort-talks.html" (dict "pages" $conferenceTalks "order" "desc") }}
     {{ $displayLimit := 15 }}
     
     <nav class="w-full">
@@ -438,23 +436,22 @@
         {{ i18n "talksAt" }}
         <span class="badge badge-sm badge-info whitespace-nowrap">{{ .Params.conference.name }}</span>
       </div>
-      {{ $now := now }}
       <ul class="menu menu-sm bg-base-200 rounded-box w-full max-h-[40vh] overflow-y-auto">
         {{ if le $totalConference $displayLimit }}
           {{/* Afficher tous les talks si moins de 16 */}}
           {{ range $sortedConference }}
           {{ $isCurrent := eq .Permalink $currentPagePermalink }}
-          {{ $isUpcoming := gt .Date $now }}
+          {{ $isUpcoming := partial "talk-is-upcoming.html" . }}
           <li>
             {{ if $isUpcoming }}
             {{/* Talk à venir : pas de lien direct, juste une icône discrète */}}
             <div class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(59, 130, 246, 0.25);"{{ end }}>
-              <span class="text-xs text-base-content/60">{{ .Date | time.Format "2006-01-02" }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
+              <span class="text-xs text-base-content/60">{{ (partial "talk-date.html" .) | time.Format "2006-01-02" }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
               <span class="text-sm">{{ .Title }} <a href="{{ .RelPermalink }}" title="Voir les détails">&nbsp;</a></span>
             </div>
             {{ else }}
             <a href="{{ .RelPermalink }}" class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(59, 130, 246, 0.25);"{{ end }}>
-              <span class="text-xs text-base-content/60">{{ .Date | time.Format "2006-01-02" }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
+              <span class="text-xs text-base-content/60">{{ (partial "talk-date.html" .) | time.Format "2006-01-02" }} {{ partial "langLabel.html" . }}{{ partial "slidesLabel.html" . }}{{ partial "videoLabel.html" . }}</span>
               <span class="text-sm">{{ .Title }}</span>
             </a>
             {{ end }}
@@ -585,17 +582,17 @@
               
               {{/* Afficher le talk */}}
               {{ $isCurrent := eq $talk.Permalink $currentPagePermalink }}
-              {{ $isUpcoming := gt $talk.Date $now }}
+              {{ $isUpcoming := partial "talk-is-upcoming.html" $talk }}
               <li>
                 {{ if $isUpcoming }}
                 {{/* Talk à venir : pas de lien direct, juste une icône discrète */}}
                 <div class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(59, 130, 246, 0.25);"{{ end }}>
-                  <span class="text-xs text-base-content/60">{{ $talk.Date | time.Format "2006-01-02" }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
+                  <span class="text-xs text-base-content/60">{{ (partial "talk-date.html" $talk) | time.Format "2006-01-02" }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
                   <span class="text-sm">{{ $talk.Title }} <a href="{{ $talk.RelPermalink }}" title="Voir les détails"><ion-icon name="open-outline" class="text-xs"></ion-icon></a></span>
                 </div>
                 {{ else }}
                 <a href="{{ $talk.RelPermalink }}" class="flex flex-col items-start py-2{{ if $isCurrent }} pointer-events-none{{ end }}"{{ if $isCurrent }} style="background-color: rgba(59, 130, 246, 0.25);"{{ end }}>
-                  <span class="text-xs text-base-content/60">{{ $talk.Date | time.Format "2006-01-02" }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
+                  <span class="text-xs text-base-content/60">{{ (partial "talk-date.html" $talk) | time.Format "2006-01-02" }} {{ partial "langLabel.html" $talk }}{{ partial "slidesLabel.html" $talk }}{{ partial "videoLabel.html" $talk }}</span>
                   <span class="text-sm">{{ $talk.Title }}</span>
                 </a>
                 {{ end }}

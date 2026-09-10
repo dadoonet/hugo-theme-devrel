@@ -1,0 +1,24 @@
+{{- /*
+  Sort talk pages by event date (conference.date, else page date).
+
+  Pass a page collection, or a dict:
+    pages  collection to sort
+    order  "desc" (default) or "asc"
+*/ -}}
+{{- $pages := . -}}
+{{- $order := "desc" -}}
+{{- if reflect.IsMap . -}}
+  {{- $pages = .pages -}}
+  {{- with .order -}}
+    {{- $order = . -}}
+  {{- end -}}
+{{- end -}}
+{{- $items := slice -}}
+{{- range $pages -}}
+  {{- $items = $items | append (dict "page" . "date" (partial "talk-date.html" .)) -}}
+{{- end -}}
+{{- $out := slice -}}
+{{- range sort $items "date" $order -}}
+  {{- $out = $out | append .page -}}
+{{- end -}}
+{{- return $out -}}

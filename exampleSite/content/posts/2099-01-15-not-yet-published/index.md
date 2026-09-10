@@ -12,7 +12,7 @@ nolastmod: true
 draft: false
 ---
 
-This fictional post is dated far in the future on purpose. The HTML is generated when the site uses `buildFuture`, but it must stay off the homepage, archives, and the Pagefind index until that date.
+This fictional post is dated far in the future on purpose. It is **not** generated unless the site sets `buildFuture` (or passes `--buildFuture`). Upcoming talks do not need that flag: they use `date` for the announcement and `conference.date` for the event.
 
 <!--more-->
 

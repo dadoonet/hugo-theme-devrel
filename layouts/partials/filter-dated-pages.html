@@ -1,9 +1,13 @@
 {{- /*
   Filter a page collection for public listings and feeds.
 
-  With buildFuture, upcoming talks and scheduled posts still get URLs.
-  Future posts stay off lists/RSS/prev-next until their date. Upcoming talks stay
-  on talks-related surfaces unless keepFutureTalks is false (home RSS).
+  Talks: event date is conference.date (else page date). Announced talks
+  (page date in the past) are generated without buildFuture; keepFutureTalks
+  keeps those upcoming sessions on talks-related surfaces. Home RSS omits
+  them until the event date.
+
+  Posts: future dates stay off lists/RSS/prev-next until their date. Sites
+  that pass --buildFuture still get URLs for scheduled posts.
 
   Pass include to keep one extra page (the current post) so prev/next can
   still find public neighbors from a scheduled URL.
@@ -18,11 +22,18 @@
 {{- if ne hugo.Environment "development" -}}
   {{- $out = slice -}}
   {{- range $pages -}}
-    {{- if le .Date now -}}
+    {{- if eq .Type "talks" -}}
+      {{- $talkDate := partial "talk-date.html" . -}}
+      {{- if $keepFutureTalks -}}
+        {{- $out = $out | append . -}}
+      {{- else if le $talkDate now -}}
+        {{- $out = $out | append . -}}
+      {{- else if and $include (eq .RelPermalink $include.RelPermalink) -}}
+        {{- $out = $out | append . -}}
+      {{- end -}}
+    {{- else if le .Date now -}}
       {{- $out = $out | append . -}}
     {{- else if and $include (eq .RelPermalink $include.RelPermalink) -}}
-      {{- $out = $out | append . -}}
-    {{- else if and $keepFutureTalks (eq .Type "talks") -}}
       {{- $out = $out | append . -}}
     {{- end -}}
   {{- end -}}

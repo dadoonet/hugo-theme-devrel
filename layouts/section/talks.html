@@ -365,9 +365,8 @@
   }
 </style>
 
-{{/* Get all talks and sort by date descending, excluding special pages */}}
-{{ $allTalks := .Pages.ByDate.Reverse }}
-{{ $now := now }}
+{{/* Get all talks and sort by event date descending, excluding special pages */}}
+{{ $allTalks := partial "sort-talks.html" (dict "pages" .Pages "order" "desc") }}
 
 {{/* Separate upcoming and past talks, excluding special pages (templates, all, map, videos) */}}
 {{ $scratch := newScratch }}
@@ -376,7 +375,7 @@
 {{ range $allTalks }}
   {{ $dir := .File.Dir }}
   {{ if not (or (in $dir "templates/") (in $dir "all/") (in $dir "map/") (in $dir "videos/")) }}
-    {{ if gt .Date $now }}
+    {{ if partial "talk-is-upcoming.html" . }}
       {{ $scratch.Add "upcoming" (slice .) }}
     {{ else }}
       {{ $scratch.Add "past" (slice .) }}
@@ -432,7 +431,7 @@
               {{ partial "countryFlag.html" $talk.Params.conference }}
               <span>{{ $talk.Params.conference.name }}</span>
               <span>•</span>
-              <span>{{ $talk.Date | time.Format "January 2006" }}</span>
+              <span>{{ (partial "talk-date.html" $talk) | time.Format "January 2006" }}</span>
             </div>
           </div>
         </a>
@@ -470,7 +469,7 @@
               </div>
             </td>
             <td class="upcoming-date">
-              {{ .Date | time.Format "January 2, 2006" }}
+              {{ (partial "talk-date.html" .) | time.Format "January 2, 2006" }}
             </td>
           </tr>
           {{ end }}
@@ -505,7 +504,7 @@
               {{ end }}{{ if and .Params.conference.city (ne .Params.conference.city "") }}, {{ if and .Params.conference.latitude .Params.conference.longitude }}<a href="https://www.google.com/maps?q={{ .Params.conference.latitude }},{{ .Params.conference.longitude }}" target="_blank" rel="noopener noreferrer">{{ .Params.conference.city }}</a>{{ else }}{{ .Params.conference.city }}{{ end }}{{ end }}
             </td>
             <td class="past-date">
-              {{ .Date | time.Format "January 2006" }}
+              {{ (partial "talk-date.html" .) | time.Format "January 2006" }}
             </td>
           </tr>
           {{ end }}
@@ -541,7 +540,7 @@
           {{ end }}
           <div class="video-overlay">
             <div class="video-title">{{ .Title }}</div>
-            <div class="video-date">{{ .Date | time.Format "January 2006" }}</div>
+            <div class="video-date">{{ (partial "talk-date.html" .) | time.Format "January 2006" }}</div>
           </div>
         </a>
         {{ end }}
@@ -570,8 +569,9 @@
       {{ $playedCount := 0 }}
       {{ range where $allTalksForTemplates ".Params.talk" $talkName }}
         {{ $playedCount = add $playedCount 1 }}
-        {{ if gt .Date $latestDate }}
-          {{ $latestDate = .Date }}
+        {{ $eventDate := partial "talk-date.html" . }}
+        {{ if gt $eventDate $latestDate }}
+          {{ $latestDate = $eventDate }}
         {{ end }}
       {{ end }}
       {{ $templatesWithDates = $templatesWithDates | append (dict "template" . "latestDate" $latestDate "playedCount" $playedCount) }}

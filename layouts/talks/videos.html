@@ -178,14 +178,8 @@
       </h1>
       <p class="text-base-content/70 mt-4 max-w-2xl mx-auto">{{ len $talksWithVideo }} recorded presentations</p>
 
-      {{/* Year navigation for videos */}}
-      {{ $groupLayout := "2006" }}
-      {{ $groups := $talksWithVideo | group "Date.Year" }}
-      {{/* Sort groups by year descending */}}
-      {{ $sortedGroups := slice }}
-      {{ range $talksWithVideo.GroupByDate $groupLayout }}
-        {{ $sortedGroups = $sortedGroups | append . }}
-      {{ end }}
+      {{/* Year navigation for videos (event date, not announcement) */}}
+      {{ $sortedGroups := partial "group-talks-by-year.html" $talksWithVideo }}
       
       {{/* Get unique decades using scratch */}}
       {{ $scratch.Set "decades" slice }}
@@ -227,7 +221,7 @@
       </div>
 
       <div class="video-grid" style="margin-top: 1rem;">
-        {{ range .Pages.ByDate.Reverse }}
+        {{ range .Pages }}
         <a href="{{ .RelPermalink }}#video" class="video-card">
           {{/* Get YouTube thumbnail */}}
           {{ $youtubeId := .Params.youtube }}
@@ -244,7 +238,7 @@
               {{ partial "langLabel.html" . }}
               <span>{{ .Params.conference.name }}</span>
               <span>•</span>
-              <span>{{ .Date | time.Format "Jan 2006" }}</span>
+              <span>{{ (partial "talk-date.html" .) | time.Format "Jan 2006" }}</span>
             </div>
           </div>
         </a>

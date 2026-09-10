@@ -8,15 +8,16 @@ conference:
   url: "https://example.org/futureconf"
   latitude: "45.764043"
   longitude: "4.835659"
+  date: 2099-03-20
 authors:
   - author: "Alex Rivera"
-date: 2099-03-20
+date: 2026-01-15
 talk-lang: en
 nolastmod: true
 draft: false
 talk: "Search that scales"
 ---
 
-A far-future session so the example site can show an Upcoming card while the full page stays out of Pagefind until the date.
+Announced in January 2026 for a March 2099 session. The page is public without `--buildFuture`; the permalink stays masked and Pagefind skips it until `conference.date`.
 
 Unique marker for the search-exclusion test: `ZXQ-future-talk-not-yet-public`.

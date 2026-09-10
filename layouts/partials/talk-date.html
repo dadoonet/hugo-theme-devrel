@@ -1,0 +1,12 @@
+{{- /*
+  Event date for a talk page.
+
+  conference.date is when the session happens. The page date is the
+  announcement / Hugo publish date. If conference.date is omitted, the
+  page date is used so existing content keeps working.
+*/ -}}
+{{- $d := .Date -}}
+{{- with .Params.conference.date -}}
+  {{- $d = time.AsTime . -}}
+{{- end -}}
+{{- return $d -}}

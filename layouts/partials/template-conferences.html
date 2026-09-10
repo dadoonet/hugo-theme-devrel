@@ -2,7 +2,6 @@
 {{/* Expects: dict "talks" (slice of talk pages sorted by date desc) */}}
 
 {{ $talks := .talks }}
-{{ $now := now }}
 
 <style>
   .conf-timeline {
@@ -97,14 +96,14 @@
 
 <div class="conf-timeline not-prose">
   {{ range $talks }}
-  {{ $isUpcoming := gt .Date $now }}
+  {{ $isUpcoming := partial "talk-is-upcoming.html" . }}
   <div class="conf-item{{ if $isUpcoming }} upcoming{{ end }}">
     <div class="conf-card">
       <div class="conf-date">
         {{ if $isUpcoming }}
         <span class="badge badge-warning badge-sm mr-1">Upcoming</span>
         {{ end }}
-        {{ .Date | time.Format "January 2, 2006" }}
+        {{ (partial "talk-date.html" .) | time.Format "January 2, 2006" }}
       </div>
       <div class="conf-title">
         {{ if $isUpcoming }}

@@ -8,11 +8,12 @@ conference:
   country_code: "" # online, fr, us, etc.
 #  latitude: ""
 #  longitude: ""
+  date: '{{ substr .File.ContentBaseName 0 10 }}'  # event day
 authors:
   - author: '{{ site.Params.author }}'
 #   avatar: '{{ site.Params.avatar }}'  # optional; inferred from author name
 #   link: "https://www.linkedin.com/in/username"
-date: '{{ substr .File.ContentBaseName 0 10 }}'
+date: '{{ now.Format "2006-01-02" }}'  # announcement / Hugo publish date
 talk-lang: en # fr or en
 nolastmod: true
 draft: true

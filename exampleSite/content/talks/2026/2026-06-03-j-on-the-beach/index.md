@@ -8,6 +8,7 @@ conference:
   url: "https://jonthebeach.com/"
   latitude: "36.721273"
   longitude: "-4.421399"
+  date: 2026-06-03
 authors:
   - author: "Alex Rivera"
   - author: "Jordan Blake"

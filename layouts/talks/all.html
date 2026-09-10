@@ -129,7 +129,6 @@
 {{/* Get all talks from the parent section */}}
 {{ $talksSection := site.GetPage "/talks" }}
 {{ $allTalks := $talksSection.RegularPages }}
-{{ $now := now }}
 
 <div id="top" class="mt-8 px-4" style="padding-left: 2rem; padding-right: 2rem;">
   <div style="max-width: 1600px; margin: 0 auto;">
@@ -143,9 +142,8 @@
       <p class="text-base-content/70 mt-4 max-w-2xl mx-auto">{{ .Content }}</p>
       {{ end }}
 
-      {{/* Year navigation grouped by decade */}}
-      {{ $groupLayout := "2006" }}
-      {{ $groups := $allTalks.GroupByDate $groupLayout }}
+      {{/* Year navigation grouped by decade (event date, not announcement) */}}
+      {{ $groups := partial "group-talks-by-year.html" $allTalks }}
       {{/* Get unique decades using scratch */}}
       {{ $scratch := newScratch }}
       {{ $scratch.Set "decades" slice }}
@@ -186,17 +184,18 @@
       </div>
 
       <div class="talks-grid">
-        {{ range .Pages.ByDate.Reverse }}
+        {{ range .Pages }}
         <article class="card bg-base-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
           {{ $cover := partial "cover-resource.html" . }}
+          {{ $isUpcoming := partial "talk-is-upcoming.html" . }}
           {{ if $cover }}
           <figure class="relative overflow-hidden h-40">
-            {{ if lt .Date $now }}
+            {{ if not $isUpcoming }}
             <a href="{{ .RelPermalink }}">
             {{ end }}
               <img src="{{ $cover.RelPermalink }}" alt="{{ .Title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               <div class="absolute inset-0 bg-gradient-to-t from-base-200/80 to-transparent"></div>
-            {{ if lt .Date $now }}
+            {{ if not $isUpcoming }}
             </a>
             {{ end }}
           </figure>
@@ -208,7 +207,7 @@
               {{ partial "slidesLabel.html" . }}
               {{ partial "videoLabel.html" . }}
 
-              {{ if gt .Date $now }}
+              {{ if $isUpcoming }}
               <span class="badge badge-primary badge-sm gap-1">
                 <ion-icon name="alarm" class="text-xs"></ion-icon>
                 Upcoming
@@ -217,7 +216,7 @@
 
             </div>
             <h2 class="card-title text-base leading-tight line-clamp-2 min-h-[2.5rem]">
-              {{ if gt .Date $now }}
+              {{ if $isUpcoming }}
               {{ .Title }}
               <a href="{{ .RelPermalink }}" class="hidden-link" title="Voir les détails">
                 <ion-icon name="open-outline"></ion-icon>
@@ -234,7 +233,7 @@
                 <a href="{{ .Params.conference.url }}" target="_blank">
                 <span class="truncate max-w-[60%]" title="{{ .Params.conference.name }}">{{ .Params.conference.name }}</span>
                 </a>
-                <span title="{{ .Date | time.Format "January 2, 2006" }}">{{ .Date | time.Format "Jan 2" }}</span>
+                <span title="{{ (partial "talk-date.html" .) | time.Format "January 2, 2006" }}">{{ (partial "talk-date.html" .) | time.Format "Jan 2" }}</span>
               </div>
             </div>
           </div>

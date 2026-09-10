@@ -195,7 +195,7 @@ Drop `cover:` when the bundle contains `cover.*`. Drop `avatar:` when the speake
 
 Set `date` to the day you want the announcement live, and `conference.date` to the event. You do **not** need `--buildFuture` for upcoming talks: Hugo generates the page from `date`, and the theme hides the talk permalink until `conference.date`. Conference site links stay visible so people can still find the event. Pagefind and the home RSS wait for the event date as well; `/talks/index.xml` lists upcoming sessions.
 
-`--buildFuture` remains optional for **scheduled posts** (a `content/posts/` page whose `date` is still in the future).
+`--buildFuture` remains optional for **previewing scheduled posts** (a `content/posts/` page whose `date` is still in the future). The theme does not re-filter those posts: without the flag Hugo omits the page; with it (Netlify preview, `hugo server`) the post is listed and indexed like any other.
 
 `social` is a list of public post URLs. The theme embeds X, Bluesky, and LinkedIn (see JavaZone in `exampleSite`).
 
@@ -276,7 +276,7 @@ The example site ships enough pages to exercise every layout:
 | About      | Numbered sections (`10-`, `20-`, `30-`) plus `data/socials.toml`                                               |
 | Co-speaker | J on the Beach; Jordan sets `avatar: speakers/jordan.svg` (not `firstname_lastname`)                           |
 
-A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`. Pull requests are not built there: Netlify serves the deploy preview (`netlify.toml`).
+A GitHub Actions workflow (`.github/workflows/pages.yml`) builds `exampleSite` (Hugo + Pagefind) and deploys it to GitHub Pages on every push to `main`. Pull requests are not built there: Netlify serves the deploy preview (`netlify.toml`, without `--buildFuture`). A separate workflow (`.github/workflows/test-buildfuture.yml`) builds with `--buildFuture` on PRs so scheduled posts stay visible in preview.
 
 **One-time Pages + DNS setup** (needed because `david.pilato.fr` is already the custom domain of the user site `dadoonet.github.io`, which would otherwise redirect project URLs to a 404):
 
@@ -308,12 +308,15 @@ hugo mod tidy
 hugo --minify
 npx --yes pagefind --site public
 bash scripts/assert-pagefind-skips-future.sh public
+hugo --minify --buildFuture --destination public-buildFuture
+npx --yes pagefind --site public-buildFuture
+bash scripts/assert-pagefind-skips-future.sh public-buildFuture --buildFuture
 hugo server
 ```
 
 Use a `replace` in `exampleSite/go.mod` pointing at the parent theme while developing.
 
-Pagefind indexes pages marked with `data-pagefind-body` (posts, talks, talk templates, about). Upcoming talks (event date still in the future) and scheduled posts omit that attribute in production. Talks no longer need `--buildFuture`: set `date` to the announcement and `conference.date` to the event so Hugo generates the page while listings mask the permalink until the session. `--buildFuture` remains optional for scheduled posts. The same event-date filter is used on the homepage RSS (upcoming talks omitted there); `/talks/index.xml` still lists upcoming sessions. Talk templates and about pages are always indexed. Filters: `section:posts`, `section:talks`, `section:templates`, `section:videos`, `section:about`. Cover images (front matter, `cover.*`, or YouTube thumbnail) are exposed as result images. Indexed pages emit `data-pagefind-sort="date:YYYY-MM-DD"` (talks use the event date); empty queries (browse / filter alone) sort by date descending, while non-empty queries keep Pagefind relevance scoring. The nav shows a search icon that opens a centered modal; the section filter appears on the same row as the query once you type. Contextual presets apply on `/posts*` and `/talks*` (including templates/videos). A basic `/search` page remains; a richer dedicated search UI may come later.
+Pagefind indexes pages marked with `data-pagefind-body` (posts, talks, talk templates, about). Upcoming talks (event date still in the future) omit that attribute in production. Scheduled posts follow Hugo: without `--buildFuture` the page is not generated; with it, the post is listed and indexed. Talks no longer need `--buildFuture`: set `date` to the announcement and `conference.date` to the event so Hugo generates the page while listings mask the permalink until the session. `--buildFuture` remains optional for previewing scheduled posts. The same event-date filter is used on the homepage RSS (upcoming talks omitted there); `/talks/index.xml` still lists upcoming sessions. Talk templates and about pages are always indexed. Filters: `section:posts`, `section:talks`, `section:templates`, `section:videos`, `section:about`. Cover images (front matter, `cover.*`, or YouTube thumbnail) are exposed as result images. Indexed pages emit `data-pagefind-sort="date:YYYY-MM-DD"` (talks use the event date); empty queries (browse / filter alone) sort by date descending, while non-empty queries keep Pagefind relevance scoring. The nav shows a search icon that opens a centered modal; the section filter appears on the same row as the query once you type. Contextual presets apply on `/posts*` and `/talks*` (including templates/videos). A basic `/search` page remains; a richer dedicated search UI may come later.
 
 ## License
 

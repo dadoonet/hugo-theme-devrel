@@ -6,7 +6,9 @@
 # 2. Repo Settings → Pages → Source = GitHub Actions
 # 3. Repo Settings → Pages → Custom domain = devrel.hugo.pilato.fr (then Enforce HTTPS)
 # Tool pins: .github/versions.env (Dependabot: Actions/npm/gomod; pins: update-tool-versions.yml)
-# Pull requests: Netlify deploy preview only (netlify.toml). This workflow does not run on PRs.
+# Pull requests: Netlify deploy preview only (netlify.toml, no --buildFuture).
+# --buildFuture asserts run on PRs via test-buildfuture.yml. This workflow
+# does not run on PRs.
 
 name: Deploy exampleSite
 
@@ -109,6 +111,11 @@ jobs:
           hugo --gc --minify
           npx pagefind --site public
           bash scripts/assert-pagefind-skips-future.sh public
+          # Preview contract: --buildFuture publishes scheduled posts
+          # everywhere. Production artifact above stays without the flag.
+          hugo --gc --minify --buildFuture --destination public-buildFuture
+          npx pagefind --site public-buildFuture
+          bash scripts/assert-pagefind-skips-future.sh public-buildFuture --buildFuture
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'

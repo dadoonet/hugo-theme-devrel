@@ -26,7 +26,20 @@
 {{- else }}
   {{- $pages = $pctx.Pages }}
 {{- end }}
-{{- $pages = partial "filter-dated-pages.html" (dict "pages" $pages "keepFutureTalks" (not .IsHome)) }}
+{{- /* Home RSS omits upcoming talks (event date). Posts follow Hugo. */ -}}
+{{- if .IsHome }}
+  {{- $filtered := slice }}
+  {{- range $pages }}
+    {{- if eq .Type "talks" }}
+      {{- if not (partial "talk-is-upcoming.html" .) }}
+        {{- $filtered = $filtered | append . }}
+      {{- end }}
+    {{- else }}
+      {{- $filtered = $filtered | append . }}
+    {{- end }}
+  {{- end }}
+  {{- $pages = $filtered }}
+{{- end }}
 {{- $limit := .Site.Config.Services.RSS.Limit }}
 {{- if ge $limit 1 }}
   {{- $pages = $pages | first $limit }}

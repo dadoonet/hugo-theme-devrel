@@ -1,10 +1,31 @@
 #!/usr/bin/env bash
 # Assert upcoming talks are generated from their announcement date (no
 # buildFuture required) while staying off Pagefind and home RSS until
-# conference.date. Scheduled posts stay unpublished unless buildFuture.
+# conference.date.
+#
+# Usage:
+#   scripts/assert-pagefind-skips-future.sh [public-dir]
+#   scripts/assert-pagefind-skips-future.sh [public-dir] --buildFuture
+#
+# Default build (CI / Netlify / GitHub Pages): scheduled posts are absent
+# because Hugo did not generate them. --buildFuture: Hugo generated the
+# post, and the theme must list it everywhere (home, archives, taxonomies,
+# RSS, Pagefind, prev/next). Talks still follow conference.date.
 set -euo pipefail
 
-ROOT="${1:-public}"
+ROOT="public"
+BUILD_FUTURE=0
+for arg in "$@"; do
+  case "$arg" in
+    --buildFuture|--build-future)
+      BUILD_FUTURE=1
+      ;;
+    *)
+      ROOT="$arg"
+      ;;
+  esac
+done
+
 fail=0
 
 assert_file() {
@@ -134,8 +155,14 @@ TALKS="${ROOT}/talks/index.html"
 ALL_TALKS="${ROOT}/talks/all/index.html"
 
 # Upcoming talk is announced (date in the past) so Hugo generates it without
-# buildFuture. Scheduled posts stay unpublished in the default build.
-assert_no_file "$FUTURE_POST"
+# buildFuture. Scheduled posts stay unpublished in the default build; with
+# --buildFuture Hugo emits them and the theme must not hide them.
+if [[ "$BUILD_FUTURE" -eq 1 ]]; then
+  assert_file "$FUTURE_POST"
+  assert_has_attr "$FUTURE_POST"
+else
+  assert_no_file "$FUTURE_POST"
+fi
 assert_file "$FUTURE_TALK"
 assert_file "$PAST_POST"
 assert_file "$LATEST_POST"
@@ -149,24 +176,38 @@ assert_has_attr "$PAST_POST"
 assert_has_attr "$PAST_TALK"
 assert_has_attr "$TEMPLATE"
 
-assert_html_omits "$HOME" "2099-01-15-not-yet-published" "homepage"
-assert_html_omits "$ARCHIVES" "2099-01-15-not-yet-published" "archives"
-assert_html_omits "$LATEST_POST" "2099-01-15-not-yet-published" "latest post prev/next"
+if [[ "$BUILD_FUTURE" -eq 1 ]]; then
+  assert_html_contains "$HOME" "2099-01-15-not-yet-published" "homepage"
+  assert_html_contains "$ARCHIVES" "2099-01-15-not-yet-published" "archives"
+  assert_html_contains "$LATEST_POST" "2099-01-15-not-yet-published" "latest post prev/next"
+  assert_html_contains "${ROOT}/categories/index.html" "2099-01-15-not-yet-published" "all categories"
+  assert_html_contains "${ROOT}/tags/index.html" "2099-01-15-not-yet-published" "all tags"
+  assert_html_contains "${ROOT}/categories/meta/index.html" "2099-01-15-not-yet-published" "category meta"
+  assert_html_contains "${ROOT}/tags/hugo/index.html" "2099-01-15-not-yet-published" "tag hugo"
+  assert_html_contains "${ROOT}/index.xml" "2099-01-15-not-yet-published" "home RSS"
+  assert_html_contains "${ROOT}/posts/index.xml" "2099-01-15-not-yet-published" "posts RSS"
+  assert_html_contains "${ROOT}/categories/meta/index.xml" "2099-01-15-not-yet-published" "category RSS"
+  assert_html_contains "${ROOT}/tags/hugo/index.xml" "2099-01-15-not-yet-published" "tag RSS"
+else
+  assert_html_omits "$HOME" "2099-01-15-not-yet-published" "homepage"
+  assert_html_omits "$ARCHIVES" "2099-01-15-not-yet-published" "archives"
+  assert_html_omits "$LATEST_POST" "2099-01-15-not-yet-published" "latest post prev/next"
+  assert_html_omits "${ROOT}/categories/index.html" "2099-01-15-not-yet-published" "all categories"
+  assert_html_omits "${ROOT}/tags/index.html" "2099-01-15-not-yet-published" "all tags"
+  assert_html_omits "${ROOT}/categories/meta/index.html" "2099-01-15-not-yet-published" "category meta"
+  assert_html_omits "${ROOT}/tags/hugo/index.html" "2099-01-15-not-yet-published" "tag hugo"
+  assert_html_omits "${ROOT}/index.xml" "2099-01-15-not-yet-published" "home RSS"
+  assert_html_omits "${ROOT}/posts/index.xml" "2099-01-15-not-yet-published" "posts RSS"
+  assert_html_omits "${ROOT}/categories/meta/index.xml" "2099-01-15-not-yet-published" "category RSS"
+  assert_html_omits "${ROOT}/tags/hugo/index.xml" "2099-01-15-not-yet-published" "tag RSS"
+fi
 assert_html_contains "$LATEST_POST" "2026-01-20-from-laptop-to-stage" "latest post prev/next"
 assert_html_omits "$MID_POST" "2099-01-15-not-yet-published" "mid post prev/next"
 assert_html_contains "$MID_POST" "2026-04-08-why-open-source-your-speaker-site" "mid post next nav"
-assert_html_omits "${ROOT}/categories/index.html" "2099-01-15-not-yet-published" "all categories"
-assert_html_omits "${ROOT}/tags/index.html" "2099-01-15-not-yet-published" "all tags"
-assert_html_omits "${ROOT}/categories/meta/index.html" "2099-01-15-not-yet-published" "category meta"
-assert_html_omits "${ROOT}/tags/hugo/index.html" "2099-01-15-not-yet-published" "tag hugo"
 assert_html_contains "${ROOT}/categories/index.html" "hello-devrel" "all categories"
 assert_html_contains "${ROOT}/tags/index.html" "hello-devrel" "all tags"
 
-assert_html_omits "${ROOT}/index.xml" "2099-01-15-not-yet-published" "home RSS"
 assert_html_omits "${ROOT}/index.xml" "2099-03-20-futureconf" "home RSS"
-assert_html_omits "${ROOT}/posts/index.xml" "2099-01-15-not-yet-published" "posts RSS"
-assert_html_omits "${ROOT}/categories/meta/index.xml" "2099-01-15-not-yet-published" "category RSS"
-assert_html_omits "${ROOT}/tags/hugo/index.xml" "2099-01-15-not-yet-published" "tag RSS"
 assert_html_contains "${ROOT}/index.xml" "hello-devrel" "home RSS"
 assert_html_contains "${ROOT}/posts/index.xml" "hello-devrel" "posts RSS"
 assert_html_contains "${ROOT}/talks/index.xml" "2025-03-15-devfest-example" "talks RSS"
@@ -265,9 +306,14 @@ fi
 
 load_index_text || true
 
-assert_index_omits "ZXQ-future-post-not-yet-public" "future post marker"
+if [[ "$BUILD_FUTURE" -eq 1 ]]; then
+  assert_index_contains "ZXQ-future-post-not-yet-public" "future post marker"
+  assert_index_contains "/posts/2099-01-15-not-yet-published/" "future post URL"
+else
+  assert_index_omits "ZXQ-future-post-not-yet-public" "future post marker"
+  assert_index_omits "/posts/2099-01-15-not-yet-published/" "future post URL"
+fi
 assert_index_omits "ZXQ-future-talk-not-yet-public" "future talk marker"
-assert_index_omits "/posts/2099-01-15-not-yet-published/" "future post URL"
 assert_index_omits "/talks/2099/2099-03-20-futureconf/" "future talk URL"
 assert_index_contains "Hello from the DevRel theme" "published post title"
 assert_index_contains "/posts/2025-06-01-hello-devrel/" "published post URL"

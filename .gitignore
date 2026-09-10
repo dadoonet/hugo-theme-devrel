@@ -4,6 +4,7 @@ resources/_gen/
 node_modules/
 .DS_Store
 exampleSite/public/
+exampleSite/public-buildFuture/
 exampleSite/resources/
 exampleSite/.hugo_build.lock
 exampleSite/node_modules/
@@ -13,4 +14,5 @@ docs/
 
 # exampleSite build output
 exampleSite/public/
+exampleSite/public-buildFuture/
 exampleSite/resources/

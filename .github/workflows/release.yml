@@ -1,8 +1,9 @@
 # Manually cut a theme release from the current tip of main.
 # Actions → Release theme → Run workflow → enter version (e.g. v0.1.1).
 #
-# Steps: validate version → tag origin/main → push tag → GitHub Release
-# with auto-generated notes (since previous tag, or full history if first).
+# Steps: validate version → reject duplicate tag → tag origin/main →
+# push tag → GitHub Release with auto-generated notes (since previous
+# tag, or full history if first).
 
 name: Release theme
 
@@ -44,6 +45,19 @@ jobs:
           echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Using tag $VERSION"
 
+      - name: Reject duplicate tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Fail before checkout if the tag already exists on the remote.
+          if git ls-remote --tags \
+            "${{ github.server_url }}/${{ github.repository }}.git" \
+            "refs/tags/${TAG}" | grep -q .; then
+            echo "::error::Tag ${TAG} already exists on origin. Choose a new version."
+            exit 1
+          fi
+
       - name: Checkout main
         uses: actions/checkout@v7
         with:
@@ -57,20 +71,6 @@ jobs:
           git checkout main
           git reset --hard origin/main
           echo "Releasing $(git rev-parse --short HEAD) ($(git log -1 --pretty=%s))"
-
-      - name: Reject duplicate tag
-        env:
-          TAG: ${{ steps.version.outputs.tag }}
-        run: |
-          set -euo pipefail
-          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
-            echo "::error::Tag ${TAG} already exists. Choose a new version."
-            exit 1
-          fi
-          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
-            echo "::error::Tag ${TAG} already exists on origin. Choose a new version."
-            exit 1
-          fi
 
       - name: Create and push tag
         env:

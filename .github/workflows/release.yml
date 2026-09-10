@@ -149,3 +149,19 @@ jobs:
           fi
           gh release create "${args[@]}"
           echo "Release URL: $(gh release view "$TAG" --json url --jq .url)"
+
+      # Dependabot gomod (on consuming sites) reads proxy.golang.org, not
+      # GitHub Releases. Fetching the new tag here forces the proxy to index
+      # it so the next daily Dependabot run can see vX.Y.Z.
+      - name: Warm Go module proxy
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          MOD=github.com/dadoonet/hugo-theme-devrel
+          echo "Indexing ${MOD}@${TAG} on proxy.golang.org"
+          curl -fsSL "https://proxy.golang.org/${MOD}/@v/${TAG}.info"
+          echo
+          echo "Known versions:"
+          curl -fsSL "https://proxy.golang.org/${MOD}/@v/list"
+          echo

@@ -14,12 +14,7 @@
   prev = newer (PrevInSection / nextPage).
 */ -}}
 {{- $current := . -}}
-{{- $pages := slice -}}
-{{- range .CurrentSection.RegularPages -}}
-  {{- if or (eq hugo.Environment "development") (le .Date now) (eq .RelPermalink $current.RelPermalink) -}}
-    {{- $pages = $pages | append . -}}
-  {{- end -}}
-{{- end -}}
+{{- $pages := partial "filter-dated-pages.html" (dict "pages" .CurrentSection.RegularPages "include" .) -}}
 {{- $prev := false -}}
 {{- $next := false -}}
 {{- $found := false -}}

@@ -5,16 +5,22 @@
   Future posts stay off lists/RSS/prev-next until their date. Upcoming talks stay
   on talks-related surfaces unless keepFutureTalks is false (home RSS).
 
+  Pass include to keep one extra page (the current post) so prev/next can
+  still find public neighbors from a scheduled URL.
+
   In development, the collection is unchanged so local previews match
   the homepage/archives.
 */ -}}
 {{- $pages := .pages -}}
 {{- $keepFutureTalks := .keepFutureTalks -}}
+{{- $include := .include -}}
 {{- $out := $pages -}}
 {{- if ne hugo.Environment "development" -}}
   {{- $out = slice -}}
   {{- range $pages -}}
     {{- if le .Date now -}}
+      {{- $out = $out | append . -}}
+    {{- else if and $include (eq .RelPermalink $include.RelPermalink) -}}
       {{- $out = $out | append . -}}
     {{- else if and $keepFutureTalks (eq .Type "talks") -}}
       {{- $out = $out | append . -}}

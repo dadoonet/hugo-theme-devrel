@@ -12,6 +12,8 @@
     hugo mod tidy
     hugo --gc --minify --baseURL "${DEPLOY_PRIME_URL%/}/"
     npx pagefind --site public
+    bash scripts/assert-svg-utf8.sh content
+    bash scripts/assert-svg-utf8.sh public
     bash scripts/assert-pagefind-skips-future.sh public
     """
 

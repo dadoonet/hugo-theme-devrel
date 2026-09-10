@@ -307,9 +307,12 @@ cd exampleSite
 hugo mod tidy
 hugo --minify
 npx --yes pagefind --site public
+bash scripts/assert-svg-utf8.sh content
+bash scripts/assert-svg-utf8.sh public
 bash scripts/assert-pagefind-skips-future.sh public
 hugo --minify --buildFuture --destination public-buildFuture
 npx --yes pagefind --site public-buildFuture
+bash scripts/assert-svg-utf8.sh public-buildFuture
 bash scripts/assert-pagefind-skips-future.sh public-buildFuture --buildFuture
 hugo server
 ```

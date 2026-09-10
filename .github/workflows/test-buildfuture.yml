@@ -79,4 +79,6 @@ jobs:
           hugo mod tidy
           hugo --gc --minify --buildFuture --destination public-buildFuture
           npx pagefind --site public-buildFuture
+          bash scripts/assert-svg-utf8.sh content
+          bash scripts/assert-svg-utf8.sh public-buildFuture
           bash scripts/assert-pagefind-skips-future.sh public-buildFuture --buildFuture

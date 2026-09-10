@@ -6,6 +6,7 @@
     "index": "npx pagefind --site public",
     "test:search": "bash scripts/assert-pagefind-skips-future.sh public",
     "test:search:future": "bash scripts/assert-pagefind-skips-future.sh public-buildFuture --buildFuture",
+    "test:svg": "bash scripts/assert-svg-utf8.sh content",
     "dev": "hugo server"
   },
   "devDependencies": {

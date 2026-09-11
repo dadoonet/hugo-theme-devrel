@@ -4,7 +4,8 @@
 #
 # Steps: validate version → reject/replace duplicate tag → tag origin/main →
 # push tag → GitHub Release with auto-generated notes (since previous
-# tag, or full history if first).
+# tag, or full history if first) → close the open milestone titled 0.5.0
+# or v0.5.0 when releasing v0.5.0 (no-op if none exists).
 
 name: Release theme
 
@@ -23,6 +24,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: release-theme
@@ -149,6 +151,28 @@ jobs:
           fi
           gh release create "${args[@]}"
           echo "Release URL: $(gh release view "$TAG" --json url --jq .url)"
+
+      - name: Close matching milestone
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TITLE="${TAG#v}"
+          matches="$(gh api --paginate "repos/${REPO}/milestones?state=open&per_page=100" \
+            --jq ".[] | select(.title == \"${TITLE}\" or .title == \"${TAG}\") | [.number, .title, .html_url] | @tsv")"
+
+          if [[ -z "${matches}" ]]; then
+            echo "No open milestone titled ${TITLE} or ${TAG}; skipping"
+            exit 0
+          fi
+
+          while IFS=$'\t' read -r number title url; do
+            [[ -z "${number}" ]] && continue
+            gh api -X PATCH "repos/${REPO}/milestones/${number}" -f state=closed >/dev/null
+            echo "Closed milestone ${title} (#${number}): ${url}"
+          done <<< "${matches}"
 
       # Dependabot gomod (on consuming sites) reads proxy.golang.org, not
       # GitHub Releases. Fetching the new tag here forces the proxy to index

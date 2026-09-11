@@ -113,12 +113,14 @@ jobs:
           bash scripts/assert-svg-utf8.sh content
           bash scripts/assert-svg-utf8.sh public
           bash scripts/assert-pagefind-skips-future.sh public
+          bash scripts/assert-series.sh public
           # Preview contract: --buildFuture publishes scheduled posts
           # everywhere. Production artifact above stays without the flag.
           hugo --gc --minify --buildFuture --destination public-buildFuture
           npx pagefind --site public-buildFuture
           bash scripts/assert-svg-utf8.sh public-buildFuture
           bash scripts/assert-pagefind-skips-future.sh public-buildFuture --buildFuture
+          bash scripts/assert-series.sh public-buildFuture
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'

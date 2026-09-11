@@ -47,6 +47,13 @@
     {{ T "allTags" }}
   </a>
 </li>
+{{ else if and (eq . "series") site.Taxonomies.series }}
+<li>
+  <a class="inline-flex items-center p-2 cursor-pointer" href="{{ "series" | relLangURL }}" title="{{ T "allSeries" }}">
+    <ion-icon name="albums"></ion-icon>
+    {{ T "allSeries" }}
+  </a>
+</li>
 {{ else }}
 
 {{ $navItems := site.Params.navItems }}

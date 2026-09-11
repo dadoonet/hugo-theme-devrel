@@ -25,6 +25,7 @@ searchIndexMissing = "Search index not found. Run pagefind after the Hugo build 
 searchDisabled = "Search is disabled."
 searchMyPages = "Search"
 searchFilterSection = "Section"
+allSeries = "All Series"
 poweredBy = "Powered by"
 with = "with"
 and = "and"
@@ -36,3 +37,7 @@ pdfLast = "Last"
 downloadPdf = "Download PDF"
 jsDisabledSlides = "It looks like you have disabled JavaScript, so the slides won't load. Please enable it or"
 downloadPdfDirectly = "download the PDF directly"
+
+[series]
+one = "1 series"
+other = "{{ .Count }} series"

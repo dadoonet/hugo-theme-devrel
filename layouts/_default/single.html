@@ -148,11 +148,15 @@
   <div
     x-data="tocHighlighter()"
     @scroll.window="debouncedScroll"
-    class="hidden lg:flex lg:flex-col lg:items-end"
+    class="flex flex-col space-y-4 lg:items-end"
   >
     {{ if site.Params.showTableOfContents }}
-      {{ .TableOfContents }}
+      <div class="hidden lg:block w-full">
+        {{ .TableOfContents }}
+      </div>
     {{ end }}
+
+    {{ partial "post-series.html" . }}
   </div>
 </div>
 {{ end }}

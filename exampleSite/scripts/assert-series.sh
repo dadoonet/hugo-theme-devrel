@@ -102,6 +102,9 @@ assert_file "$ROAD"
 assert_file "$PART1"
 assert_file "$PART2"
 assert_file "$PART3"
+assert_file "${ROOT}/posts/2025-10-06-cfp-the-hook/cover.svg"
+assert_file "${ROOT}/posts/2025-10-13-cfp-the-outline/cover.svg"
+assert_file "${ROOT}/posts/2025-10-20-cfp-the-submit/cover.svg"
 
 assert_html_contains "$HOME" 'title="All Series"' "homepage series nav"
 if [[ -f "$HOME" ]] && grep -Eq 'name="?albums"?' "$HOME"; then

@@ -27,7 +27,9 @@
   stickyNav = true
   # Include "search" so Dream shows the nav icon (theme ships content/search/_index.md)
   reorderNavItems = ["search", "posts", "talks", "about_me"]
-  collapseNavItems = ["categories", "tags", "rss"]
+  # "series" is shown only when the taxonomy has terms. Remove it to hide
+  # the nav entry; /series/ still exists while [taxonomies] includes series.
+  collapseNavItems = ["categories", "tags", "series", "rss"]
 
   [params.navItems]
     # Paths without a leading slash so relURL respects baseURL (e.g. project Pages).

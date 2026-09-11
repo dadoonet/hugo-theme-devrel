@@ -15,6 +15,7 @@
     bash scripts/assert-svg-utf8.sh content
     bash scripts/assert-svg-utf8.sh public
     bash scripts/assert-pagefind-skips-future.sh public
+    bash scripts/assert-series.sh public
     """
 
 [build.environment]

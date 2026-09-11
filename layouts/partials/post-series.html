@@ -1,0 +1,27 @@
+{{ $page := . }}
+{{- with .GetTerms "series" -}}
+  {{- range . -}}
+  {{ $term := . }}
+  <nav class="w-full not-prose" data-devrel-series="{{ $term.Title }}" data-pagefind-ignore>
+    <div class="text-sm font-semibold mb-2">
+      <a href="{{ $term.RelPermalink }}" class="badge badge-sm badge-neutral whitespace-nowrap hover:badge-primary transition-colors">{{ $term.Title }}</a>
+    </div>
+    <ul class="menu menu-sm bg-base-200 rounded-box w-full max-h-[40vh] overflow-y-auto">
+      {{- range $term.Pages.ByDate -}}
+      {{ $isCurrent := eq .Permalink $page.Permalink }}
+      <li>
+        {{- if $isCurrent -}}
+        <div class="flex flex-col items-start py-2 pointer-events-none" data-devrel-series-current style="background-color: rgba(34, 197, 94, 0.25);">
+          <span class="text-sm">{{ .Title }}</span>
+        </div>
+        {{- else -}}
+        <a href="{{ .RelPermalink }}" class="flex flex-col items-start py-2">
+          <span class="text-sm">{{ .Title }}</span>
+        </a>
+        {{- end -}}
+      </li>
+      {{- end -}}
+    </ul>
+  </nav>
+  {{- end -}}
+{{- end -}}

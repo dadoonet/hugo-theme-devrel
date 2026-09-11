@@ -102,6 +102,17 @@ Also in [`images/`](images/): homepage (`home.png`), About (`about.png`), and th
      # Optional remote PDF base (GCS, S3, CDN). Empty = local / page-bundle PDFs.
      pdf_base_url = ""
 
+   # Hugo defaults are only tags + categories. Copy this block so series
+   # (and cities / languages) generate pages. Series appears in the nav
+   # overflow when at least one post sets `series:`; drop "series" from
+   # collapseNavItems / reorderNavItems to hide the button.
+   [taxonomies]
+     category = "categories"
+     tag = "tags"
+     series = "series"
+     city = "cities"
+     language = "languages"
+
    # Pagefind search (enabled by default). Build index after hugo:
    #   npx pagefind --site public
    # [params.search]
@@ -152,7 +163,7 @@ content/posts/YYYY-MM-DD-slug/index.md
 hugo new posts/YYYY-MM-DD-something-awesome/index.md
 ```
 
-Archetypes fill `author` from `site.Params.author`. `avatar` and `cover` are optional: see inferred fields below.
+Archetypes fill `author` from `site.Params.author`. `avatar` and `cover` are optional: see inferred fields below. Optional `series:` groups posts; the post layout lists the other parts and links to `/series/<term>/`.
 
 ### Talks
 
@@ -252,9 +263,10 @@ The About layout lists socials, then each `*.md` section (except `index.md`) by 
 | `params.talks.pdf_base_url`          | Prefix for talk `pdf:` paths; empty = local URLs     |
 | `params.search.enabled`              | Pagefind UI (`/search` + Ctrl/Cmd+K); default `true` |
 | `params.navItems.talks` / `about_me` | Dream nav entries (defaults provided)                |
+| `params.collapseNavItems`            | Overflow menu; default includes `series` with tags   |
 | `params.advanced.customCSS`          | Includes theme `css/custom.css` by default           |
 
-Taxonomies provided by the theme: `tags`, `categories`, `series`, `cities`, `languages`.
+Taxonomies (`tags`, `categories`, `series`, `cities`, `languages`) must be copied into the **site** `hugo.toml`. Hugo’s built-in defaults are only `tags` and `categories`; extra taxonomies in the theme module are not applied on their own. `series` is listed in `collapseNavItems` by default and the overlay hides that nav entry when no post sets `series:`.
 
 ## Dream coupling
 
@@ -268,7 +280,7 @@ The example site ships enough pages to exercise every layout:
 
 | Kind       | What is in `exampleSite/`                                                                                      |
 |------------|----------------------------------------------------------------------------------------------------------------|
-| Posts      | 5 page bundles; one dated 2099 (not generated unless --buildFuture)                                            |
+| Posts      | 8 page bundles; one dated 2099 (not generated unless --buildFuture); 3-part CFP series                         |
 | Talks      | 8 sessions; FutureConf announced for 2099 (Upcoming, not indexed); FOSDEM sets `cover: hero.svg`               |
 | Templates  | 3 recurring topics (`Search that scales`, `Observability for humans`, `Communities that last`) with EN/FR copy |
 | Videos     | 2 talks with YouTube ids so `/talks/videos/` is not empty                                                      |

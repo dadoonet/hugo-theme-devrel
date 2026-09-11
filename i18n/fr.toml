@@ -25,6 +25,7 @@ searchIndexMissing = "Index de recherche introuvable. Lancez pagefind après le 
 searchDisabled = "La recherche est désactivée."
 searchMyPages = "Rechercher"
 searchFilterSection = "Section"
+allSeries = "Toutes les séries"
 poweredBy = "Propulsé par"
 with = "avec les thèmes"
 and = "et"
@@ -36,3 +37,7 @@ pdfLast = "Dernier"
 downloadPdf = "Télécharger le PDF"
 jsDisabledSlides = "JavaScript est désactivé, les slides ne peuvent pas charger. Activez-le ou"
 downloadPdfDirectly = "téléchargez le PDF directement"
+
+[series]
+one = "1 série"
+other = "{{ .Count }} séries"

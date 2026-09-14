@@ -21,6 +21,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Read current pins
+        id: current
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source .github/versions.env
+          {
+            echo "hugo=${HUGO_VERSION}"
+            echo "go=${GO_VERSION}"
+            echo "node=${NODE_VERSION}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Current Hugo=${HUGO_VERSION} Go=${GO_VERSION} Node=${NODE_VERSION}"
+
       - name: Resolve latest versions
         id: latest
         env:
@@ -35,6 +48,55 @@ jobs:
           echo "go=$GO" >> "$GITHUB_OUTPUT"
           echo "node=$NODE" >> "$GITHUB_OUTPUT"
           echo "Resolved Hugo=$HUGO Go=$GO Node(major)=$NODE"
+
+      - name: Compose pull request body
+        env:
+          HUGO_BEFORE: ${{ steps.current.outputs.hugo }}
+          GO_BEFORE: ${{ steps.current.outputs.go }}
+          NODE_BEFORE: ${{ steps.current.outputs.node }}
+          HUGO_AFTER: ${{ steps.latest.outputs.hugo }}
+          GO_AFTER: ${{ steps.latest.outputs.go }}
+          NODE_AFTER: ${{ steps.latest.outputs.node }}
+          PR_BODY_PATH: ${{ runner.temp }}/pr-body.md
+        run: |
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+
+          def tick(value: str) -> str:
+              return f"`{value}`"
+
+          headers = ["Tool", "Version (before)", "Version (after)"]
+          rows = [
+              ["Hugo (extended)", tick(os.environ["HUGO_BEFORE"]), tick(os.environ["HUGO_AFTER"])],
+              ["Go", tick(os.environ["GO_BEFORE"]), tick(os.environ["GO_AFTER"])],
+              ["Node (major / LTS line)", tick(os.environ["NODE_BEFORE"]), tick(os.environ["NODE_AFTER"])],
+          ]
+          widths = [max(len(cell) for cell in col) for col in zip(headers, *rows)]
+
+          def fmt(cells: list[str]) -> str:
+              return "| " + " | ".join(c.ljust(w) for c, w in zip(cells, widths)) + " |"
+
+          table = "\n".join(
+              [
+                  fmt(headers),
+                  "|" + "|".join("-" * (w + 2) for w in widths) + "|",
+                  *(fmt(row) for row in rows),
+              ]
+          )
+          body = "\n".join(
+              [
+                  "Automated bump of CI tool pins in `.github/versions.env` and `netlify.toml`.",
+                  "",
+                  table,
+                  "",
+                  "Dependabot still owns GitHub Actions, npm (`pagefind`), and Go modules.",
+                  "",
+              ]
+          )
+          Path(os.environ["PR_BODY_PATH"]).write_text(body)
+          print(body, end="")
+          PY
 
       - name: Update versions.env
         env:
@@ -62,16 +124,7 @@ jobs:
           token: ${{ github.token }}
           commit-message: "chore(ci): bump tool versions (Hugo ${{ steps.latest.outputs.hugo }}, Go ${{ steps.latest.outputs.go }}, Node ${{ steps.latest.outputs.node }})"
           title: "chore(ci): bump Hugo ${{ steps.latest.outputs.hugo }} / Go ${{ steps.latest.outputs.go }} / Node ${{ steps.latest.outputs.node }}"
-          body: |
-            Automated bump of CI tool pins in `.github/versions.env` and `netlify.toml`.
-
-            | Tool                    | Version                            |
-            |-------------------------|------------------------------------|
-            | Hugo (extended)         | `${{ steps.latest.outputs.hugo }}` |
-            | Go                      | `${{ steps.latest.outputs.go }}`   |
-            | Node (major / LTS line) | `${{ steps.latest.outputs.node }}` |
-
-            Dependabot still owns GitHub Actions, npm (`pagefind`), and Go modules.
+          body-path: ${{ runner.temp }}/pr-body.md
           branch: chore/bump-tool-versions
           delete-branch: true
           labels: dependencies,ci

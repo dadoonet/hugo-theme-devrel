@@ -11,22 +11,23 @@
   {{ else }}
   <div class="container flex justify-between items-center gap-2 px-4">
   {{ end }}
-    <section class="flex items-center gap-2" style="flex-shrink: 0;">
-      <div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="{{ T "flip" }}">
+    {{/* Long motto: wrap/clamp via .nav-brand* in custom.css (Dream CSS lacks min-w-0 / line-clamp). */}}
+    <section class="nav-brand flex flex-1 items-center gap-2">
+      <div class="nav-brand__avatar avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="{{ T "flip" }}">
         <div class="w-12 h-12 rounded-full select-none">
           <img src="{{ site.Params.avatar | relURL }}" alt="{{ site.Params.headerTitle }}" />
         </div>
       </div>
 
       {{ if or site.Params.headerTitle site.Params.motto }}
-      <div>
+      <div class="nav-brand__text">
         {{ if site.Params.headerTitle }}
         <a href="{{ site.BaseURL }}" class="text-lg font-semibold cursor-pointer">
           {{ site.Params.headerTitle }}
         </a>
         {{ end }}
         {{ if site.Params.motto }}
-        <div class="text-base-content/60 text-sm">{{ site.Params.motto }}</div>
+        <div class="nav-brand__motto text-base-content/60 text-sm">{{ site.Params.motto }}</div>
         {{ end }}
       </div>
       {{ end }}
@@ -41,7 +42,7 @@
       {{ $navItems = complement (slice "search") $navItems }}
     {{ end }}
 
-    <div class="flex items-center gap-1 sm:hidden">
+    <div class="nav-actions flex items-center gap-1 sm:hidden">
       {{ if ne site.Params.search.enabled false }}
       <button type="button" class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" data-devrel-search-open title="{{ T "search" | default "Search" }}" aria-label="{{ T "search" | default "Search" }}">
         <ion-icon class="group-hover:text-primary-content text-xl" name="search"></ion-icon>
@@ -56,7 +57,7 @@
         </ul>
       </div>
     </div>
-    <section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4">
+    <section class="nav-actions hidden sm:flex sm:items-center sm:gap-2 md:gap-4">
       {{ if ne site.Params.search.enabled false }}
       <button type="button" class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" data-devrel-search-open title="{{ T "search" | default "Search" }}" aria-label="{{ T "search" | default "Search" }}">
         <ion-icon class="group-hover:text-primary-content" name="search"></ion-icon>

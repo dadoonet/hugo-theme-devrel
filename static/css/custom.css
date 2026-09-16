@@ -1,3 +1,33 @@
+/*
+ * Nav brand + motto (mobile).
+ * Dream's prebuilt Tailwind CSS does not include min-w-0 / line-clamp utilities,
+ * and our overlay previously set flex-shrink: 0 on the brand block, so a long
+ * motto stayed on one line and crowded the search/menu icons.
+ */
+.nav-brand {
+  min-width: 0;
+}
+
+.nav-brand__avatar {
+  flex-shrink: 0;
+}
+
+.nav-brand__text {
+  min-width: 0;
+}
+
+.nav-brand__motto {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
+.nav-actions {
+  flex-shrink: 0;
+}
+
 /* Custom CSS for badge-error (YouTube-inspired red) */
 .badge-error {
   --badge-color: oklch(55% 0.2 25);

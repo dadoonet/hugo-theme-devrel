@@ -19,7 +19,7 @@
     """
 
 [build.environment]
-  HUGO_VERSION = "0.166.0"
+  HUGO_VERSION = "0.167.0"
   HUGO_ENVIRONMENT = "production"
   HUGO_ENV = "production"
   NODE_VERSION = "24"

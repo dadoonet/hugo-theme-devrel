@@ -25,7 +25,7 @@
     {{- $slug = $slug | replaceRE "[ľłĺļ]" "l" | replaceRE "[ñńňņ]" "n" | replaceRE "[òóôõöøōŏő]" "o" -}}
     {{- $slug = $slug | replaceRE "[ŕřŗ]" "r" | replaceRE "[śŝşš]" "s" | replaceRE "[ţťŧ]" "t" -}}
     {{- $slug = $slug | replaceRE "[ùúûüũūŭůűų]" "u" | replaceRE "[ýÿ]" "y" | replaceRE "[źżž]" "z" -}}
-    {{- $slug = $slug | replace "ß" "ss" | replace "æ" "ae" | replace "œ" "oe" -}}
+    {{- $slug = $slug | replaceRE "ß" "ss" | replaceRE "æ" "ae" | replaceRE "œ" "oe" -}}
     {{- $slug = $slug | replaceRE "[^a-z0-9]+" "_" | replaceRE "^_|_$" "" -}}
     {{- range $dir := slice "speakers" "about" -}}
       {{- range $ext := slice "avif" "svg" "webp" "png" "jpg" "jpeg" -}}

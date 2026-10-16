@@ -151,6 +151,32 @@ Also in [`images/`](images/): homepage (`home.png`), About (`about.png`), and th
 replace github.com/dadoonet/hugo-theme-devrel => ../hugo-theme-devrel
 ```
 
+## Updating the theme
+
+The theme is a Hugo module, so a new release is picked up from your **site** repository (nothing to copy into it):
+
+```sh
+# Latest release of the theme (and its dependencies, including Dream)
+hugo mod get -u github.com/dadoonet/hugo-theme-devrel
+
+# or pin a specific release
+hugo mod get github.com/dadoonet/hugo-theme-devrel@v0.5.3
+
+hugo mod tidy
+git diff go.mod go.sum   # only the devrel version and checksums should change
+hugo server              # check the result locally
+git commit -am "Update devrel theme"
+git push
+```
+
+Notes:
+
+- Remove any `replace github.com/dadoonet/hugo-theme-devrel => ...` line from `go.mod` (see [Local development against a clone](#local-development-against-a-clone)), otherwise the local clone is used instead of the release.
+- Releases are listed on the [Releases page](https://github.com/dadoonet/hugo-theme-devrel/releases). Go module versions are immutable once fetched: if a release has a problem, a new patch version is published rather than moving the tag.
+- If Hugo does not see a version that was just released, bypass the module proxy cache: `GOPROXY=direct hugo mod get github.com/dadoonet/hugo-theme-devrel@vX.Y.Z`.
+- To get update PRs automatically, enable Dependabot for the `gomod` ecosystem on your site repository.
+- Extra taxonomies are not inherited from the theme: check the release notes and copy new ones into your site `hugo.toml`.
+
 ## Content conventions
 
 ### Posts

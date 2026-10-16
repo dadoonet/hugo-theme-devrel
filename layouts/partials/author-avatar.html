@@ -7,6 +7,8 @@
     3. static/speakers/firstname_lastname.{avif,svg,webp,png,jpg,jpeg}
     4. static/about/firstname_lastname.{avif,svg,webp,png,jpg,jpeg}
 
+  The name is lowercased and ASCII-folded, so "Stéphane Épée" → stephane_epee.
+
   Expected context: dict "name" "avatar"
   Returns a site-relative path string, or "".
 */}}
@@ -16,7 +18,15 @@
   {{- if or (not $name) (and site.Params.author (eq (lower $name) (lower site.Params.author))) -}}
     {{- $avatar = site.Params.avatar | default "" -}}
   {{- else -}}
-    {{- $slug := $name | lower | replaceRE "[^a-z0-9]+" "_" | replaceRE "^_|_$" "" -}}
+    {{- /* Lowercase and fold diacritics (é → e, ç → c, ...) before slugifying */ -}}
+    {{- $slug := $name | lower -}}
+    {{- $slug = $slug | replaceRE "[àáâãäåāăą]" "a" | replaceRE "[çćĉċč]" "c" | replaceRE "[ďđ]" "d" -}}
+    {{- $slug = $slug | replaceRE "[èéêëēĕėęě]" "e" | replaceRE "[ĝğġģ]" "g" | replaceRE "[ìíîïĩīĭįı]" "i" -}}
+    {{- $slug = $slug | replaceRE "[ľłĺļ]" "l" | replaceRE "[ñńňņ]" "n" | replaceRE "[òóôõöøōŏő]" "o" -}}
+    {{- $slug = $slug | replaceRE "[ŕřŗ]" "r" | replaceRE "[śŝşš]" "s" | replaceRE "[ţťŧ]" "t" -}}
+    {{- $slug = $slug | replaceRE "[ùúûüũūŭůűų]" "u" | replaceRE "[ýÿ]" "y" | replaceRE "[źżž]" "z" -}}
+    {{- $slug = $slug | replace "ß" "ss" | replace "æ" "ae" | replace "œ" "oe" -}}
+    {{- $slug = $slug | replaceRE "[^a-z0-9]+" "_" | replaceRE "^_|_$" "" -}}
     {{- range $dir := slice "speakers" "about" -}}
       {{- range $ext := slice "avif" "svg" "webp" "png" "jpg" "jpeg" -}}
         {{- if not $avatar -}}

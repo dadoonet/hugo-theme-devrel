@@ -19,11 +19,11 @@
     """
 
 [build.environment]
-  HUGO_VERSION = "0.167.0"
+  HUGO_VERSION = "0.170.1"
   HUGO_ENVIRONMENT = "production"
   HUGO_ENV = "production"
-  NODE_VERSION = "24"
-  GO_VERSION = "1.27.2"
+  NODE_VERSION = "26"
+  GO_VERSION = "1.27.4"
   TZ = "Europe/Paris"
 
 # Skip production and branch deploys; only pull-request previews are built.
